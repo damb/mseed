@@ -1,0 +1,16 @@
+[package]
+name = "mseed"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libmseed-sys = { git = "https://github.com/damb/libmseed-sys", branch = "feature/git-submodule" }
+time = { version = "0.3.20", features=["formatting"]}
+num-traits = "0.2"
+bitflags = "2.2.1"
+
+[dev-dependencies]
+pretty_assertions = "1"
+
