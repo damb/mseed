@@ -11,7 +11,7 @@ use crate::{raw, util, MSControlFlags, MSError, MSResult};
 #[repr(i8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSSampleType {
-    Ascii = 97,      // a
+    Text = 116,      // t
     Integer32 = 105, // i
     Float32 = 102,   // f
     Float64 = 100,   // d
@@ -21,7 +21,7 @@ impl MSSampleType {
     /// Create a `MSSampleType` from the given `ch`.
     pub fn from_char(ch: i8) -> MSResult<Self> {
         match ch {
-            97 => Ok(Self::Ascii),      // a
+            116 => Ok(Self::Text),      // t
             105 => Ok(Self::Integer32), // i
             102 => Ok(Self::Float32),   // f
             100 => Ok(Self::Float64),   // d
@@ -37,7 +37,7 @@ impl MSSampleType {
 #[repr(i8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSDataEncoding {
-    Ascii = raw::DE_ASCII as i8,
+    Text = raw::DE_TEXT as i8,
     Integer16 = raw::DE_INT16 as i8,
     Integer32 = raw::DE_INT32 as i8,
     Float32 = raw::DE_FLOAT32 as i8,
@@ -56,7 +56,7 @@ impl MSDataEncoding {
     /// Create a `MSDataEncoding` from the given `ch`.
     pub fn from_char(ch: i8) -> MSResult<Self> {
         match ch as u32 {
-            raw::DE_ASCII => Ok(Self::Ascii),
+            raw::DE_TEXT => Ok(Self::Text),
             raw::DE_INT16 => Ok(Self::Integer16),
             raw::DE_INT32 => Ok(Self::Integer32),
             raw::DE_FLOAT32 => Ok(Self::Float32),
@@ -285,14 +285,7 @@ impl fmt::Display for MSRecord {
 impl Drop for MSRecord {
     fn drop(&mut self) {
         unsafe {
-            raw::ms3_readmsr(
-                (&mut self.0) as *mut *mut MS3Record,
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                0,
-                0,
-            );
+            raw::ms3_readmsr((&mut self.0) as *mut *mut MS3Record, ptr::null(), 0, 0);
         }
     }
 }
