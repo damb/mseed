@@ -297,7 +297,12 @@ impl fmt::Display for MSRecord {
 impl Drop for MSRecord {
     fn drop(&mut self) {
         unsafe {
-            raw::ms3_readmsr((&mut self.0) as *mut *mut MS3Record, ptr::null(), 0, 0);
+            raw::ms3_readmsr(
+                (&mut self.0) as *mut *mut MS3Record,
+                ptr::null(),
+                MSControlFlags::empty().bits(),
+                0,
+            );
         }
     }
 }
