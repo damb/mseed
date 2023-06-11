@@ -109,6 +109,18 @@ impl MSRecord {
         Ok(Self(msr))
     }
 
+    /// Create a `MSRecord` from a raw pointer. Takes ownership.
+    pub unsafe fn from_raw(ptr: *mut MS3Record) -> Self {
+        Self(ptr)
+    }
+
+    /// Consumes the MSRecord and transfers ownership of the record to a C caller.
+    pub fn into_raw(mut self) -> *mut MS3Record {
+        let rv = self.0;
+        self.0 = ptr::null_mut();
+        rv
+    }
+
     /// Unpacks data samples of the record and return the number of unpacked samples.
     ///
     /// If the data is already unpacked, the number of previously unpacked samples is returned.
