@@ -1,3 +1,4 @@
+use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ushort};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -19,7 +20,7 @@ pub enum MSSampleType {
 
 impl MSSampleType {
     /// Create a `MSSampleType` from the given `ch`.
-    pub fn from_char(ch: i8) -> MSResult<Self> {
+    pub fn from_char(ch: c_char) -> MSResult<Self> {
         match ch {
             116 => Ok(Self::Text),      // t
             105 => Ok(Self::Integer32), // i
@@ -37,25 +38,25 @@ impl MSSampleType {
 #[repr(i8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSDataEncoding {
-    Text = raw::DE_TEXT as i8,
-    Integer16 = raw::DE_INT16 as i8,
-    Integer32 = raw::DE_INT32 as i8,
-    Float32 = raw::DE_FLOAT32 as i8,
-    Float64 = raw::DE_FLOAT64 as i8,
-    Steim1 = raw::DE_STEIM1 as i8,
-    Steim2 = raw::DE_STEIM2 as i8,
-    GeoScope24 = raw::DE_GEOSCOPE24 as i8,
-    GeoScope163 = raw::DE_GEOSCOPE163 as i8,
-    GeoScope164 = raw::DE_GEOSCOPE164 as i8,
-    CDSN = raw::DE_CDSN as i8,
-    SRO = raw::DE_SRO as i8,
-    DWWSSN = raw::DE_DWWSSN as i8,
+    Text = raw::DE_TEXT as c_char,
+    Integer16 = raw::DE_INT16 as c_char,
+    Integer32 = raw::DE_INT32 as c_char,
+    Float32 = raw::DE_FLOAT32 as c_char,
+    Float64 = raw::DE_FLOAT64 as c_char,
+    Steim1 = raw::DE_STEIM1 as c_char,
+    Steim2 = raw::DE_STEIM2 as c_char,
+    GeoScope24 = raw::DE_GEOSCOPE24 as c_char,
+    GeoScope163 = raw::DE_GEOSCOPE163 as c_char,
+    GeoScope164 = raw::DE_GEOSCOPE164 as c_char,
+    CDSN = raw::DE_CDSN as c_char,
+    SRO = raw::DE_SRO as c_char,
+    DWWSSN = raw::DE_DWWSSN as c_char,
 }
 
 impl MSDataEncoding {
     /// Create a `MSDataEncoding` from the given `ch`.
-    pub fn from_char(ch: i8) -> MSResult<Self> {
-        match ch as u32 {
+    pub fn from_char(ch: c_char) -> MSResult<Self> {
+        match ch as c_uint {
             raw::DE_TEXT => Ok(Self::Text),
             raw::DE_INT16 => Ok(Self::Integer16),
             raw::DE_INT32 => Ok(Self::Integer32),
@@ -96,7 +97,7 @@ impl MSRecord {
         }
 
         unsafe {
-            let buf = &mut *(buf as *mut [u8] as *mut [i8]);
+            let buf = &mut *(buf as *mut [u8] as *mut [c_char]);
             check(raw::msr3_parse(
                 buf.as_mut().as_mut_ptr(),
                 buf.as_mut().len() as u64,
@@ -124,7 +125,7 @@ impl MSRecord {
     /// Unpacks data samples of the record and return the number of unpacked samples.
     ///
     /// If the data is already unpacked, the number of previously unpacked samples is returned.
-    pub fn unpack_data(&mut self) -> MSResult<i64> {
+    pub fn unpack_data(&mut self) -> MSResult<c_long> {
         if !self.ptr().datasamples.is_null() {
             return Ok(self.num_samples());
         }
@@ -175,18 +176,22 @@ impl MSRecord {
     }
 
     /// Returns the raw miniSEED record, if available.
-    pub fn raw(&self) -> Option<&[u8]> {
+    pub fn raw(&self) -> Option<&[c_uchar]> {
         if self.ptr().record.is_null() || self.ptr().reclen == 0 {
             return None;
         }
 
-        let ret =
-            unsafe { from_raw_parts(self.ptr().record as *mut u8, self.ptr().reclen as usize) };
+        let ret = unsafe {
+            from_raw_parts(
+                self.ptr().record as *mut c_uchar,
+                self.ptr().reclen as usize,
+            )
+        };
         Some(ret)
     }
 
     /// Returns the major format version of the underlying record.
-    pub fn format_version(&self) -> u8 {
+    pub fn format_version(&self) -> c_uchar {
         self.ptr().formatversion
     }
 
@@ -205,7 +210,7 @@ impl MSRecord {
     }
 
     /// Returns the nominal sample rate as samples per second (`Hz`)
-    pub fn sample_rate_hz(&self) -> f64 {
+    pub fn sample_rate_hz(&self) -> c_double {
         unsafe { raw::msr3_sampratehz(&mut self.ptr() as *mut MS3Record) }
     }
 
@@ -215,33 +220,37 @@ impl MSRecord {
     }
 
     /// Returns the record publication version.
-    pub fn pub_version(&self) -> u8 {
+    pub fn pub_version(&self) -> c_uchar {
         self.ptr().pubversion
     }
 
     /// Returns the number of data samples as indicated by the raw record.
-    pub fn sample_cnt(&self) -> i64 {
+    pub fn sample_cnt(&self) -> c_long {
         self.ptr().samplecnt
     }
 
     /// Returns the CRC of the record.
-    pub fn crc(&self) -> u32 {
+    pub fn crc(&self) -> c_uint {
         self.ptr().crc
     }
 
     /// Returns the length of the data payload in bytes.
-    pub fn data_length(&self) -> u16 {
+    pub fn data_length(&self) -> c_ushort {
         self.ptr().datalength
     }
 
     /// Returns the record's extra headers, if available.
-    pub fn extra_headers(&mut self) -> Option<&[u8]> {
+    pub fn extra_headers(&mut self) -> Option<&[c_uchar]> {
         if self.ptr().extra.is_null() || self.ptr().extralength == 0 {
             return None;
         }
 
-        let ret =
-            unsafe { from_raw_parts(self.ptr().extra as *mut u8, self.ptr().extralength as usize) };
+        let ret = unsafe {
+            from_raw_parts(
+                self.ptr().extra as *mut c_uchar,
+                self.ptr().extralength as usize,
+            )
+        };
         Some(ret)
     }
 
@@ -268,7 +277,7 @@ impl MSRecord {
     }
 
     /// Returns the number of (unpacked) data samples.
-    pub fn num_samples(&self) -> i64 {
+    pub fn num_samples(&self) -> c_long {
         self.ptr().numsamples
     }
 

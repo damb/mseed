@@ -1,27 +1,27 @@
 use std::error;
-use std::ffi::CStr;
+use std::ffi::{c_int, c_long, CStr};
 use std::fmt;
 
 use num_traits::cast::AsPrimitive;
 
 use crate::{raw, MSErrorCode, MSResult};
 
-const MS_NOERROR: i64 = raw::MS_NOERROR as i64;
-const MS_ENDOFFILE: i64 = raw::MS_ENDOFFILE as i64;
-const MS_NSTERROR: i64 = raw::NSTERROR;
+const MS_NOERROR: c_long = raw::MS_NOERROR as c_long;
+const MS_ENDOFFILE: c_long = raw::MS_ENDOFFILE as c_long;
+const MS_NSTERROR: c_long = raw::NSTERROR;
 
 /// Utility function which turns a libmseed error into a result.
-pub(crate) fn check<T: PartialOrd + AsPrimitive<i64>>(code: T) -> MSResult<T> {
+pub(crate) fn check<T: PartialOrd + AsPrimitive<c_long>>(code: T) -> MSResult<T> {
     let c = code.as_();
     if c >= MS_NOERROR {
         return Ok(code);
     }
 
-    Err(MSError::from_raw(c as i32))
+    Err(MSError::from_raw(c as c_int))
 }
 
 /// Checks if the function's return code is `MS_ENDOFFILE`.
-pub(crate) fn check_eof<T: PartialEq + AsPrimitive<i64>>(code: T) -> bool {
+pub(crate) fn check_eof<T: PartialEq + AsPrimitive<c_long>>(code: T) -> bool {
     code.as_() == MS_ENDOFFILE
 }
 
@@ -29,7 +29,7 @@ pub(crate) fn check_eof<T: PartialEq + AsPrimitive<i64>>(code: T) -> bool {
 /// into a result.
 ///
 /// On error a ``MSError` with code `MSErrorCode::GenericError` is returned.
-pub(crate) fn check_nst(code: i64) -> MSResult<i64> {
+pub(crate) fn check_nst(code: c_long) -> MSResult<c_long> {
     if code > MS_NSTERROR {
         return Ok(code);
     }
@@ -40,21 +40,21 @@ pub(crate) fn check_nst(code: i64) -> MSResult<i64> {
 /// A structure representing libmseed errors.
 #[derive(Debug, PartialEq)]
 pub struct MSError {
-    code: i32,
+    code: c_int,
     message: String,
 }
 
-pub(crate) const MS_GENERROR: i32 = raw::MS_GENERROR as i32;
-pub(crate) const MS_NOTSEED: i32 = raw::MS_NOTSEED as i32;
-pub(crate) const MS_WRONGLENGTH: i32 = raw::MS_WRONGLENGTH as i32;
-pub(crate) const MS_OUTOFRANGE: i32 = raw::MS_OUTOFRANGE as i32;
-pub(crate) const MS_UNKNOWNFORMAT: i32 = raw::MS_UNKNOWNFORMAT as i32;
-pub(crate) const MS_STBADCOMPFLAG: i32 = raw::MS_STBADCOMPFLAG as i32;
-pub(crate) const MS_INVALIDCRC: i32 = raw::MS_INVALIDCRC as i32;
+pub(crate) const MS_GENERROR: c_int = raw::MS_GENERROR as c_int;
+pub(crate) const MS_NOTSEED: c_int = raw::MS_NOTSEED as c_int;
+pub(crate) const MS_WRONGLENGTH: c_int = raw::MS_WRONGLENGTH as c_int;
+pub(crate) const MS_OUTOFRANGE: c_int = raw::MS_OUTOFRANGE as c_int;
+pub(crate) const MS_UNKNOWNFORMAT: c_int = raw::MS_UNKNOWNFORMAT as c_int;
+pub(crate) const MS_STBADCOMPFLAG: c_int = raw::MS_STBADCOMPFLAG as c_int;
+pub(crate) const MS_INVALIDCRC: c_int = raw::MS_INVALIDCRC as c_int;
 
 impl MSError {
     /// Creates a new error from a given raw error code.
-    pub(crate) fn from_raw(code: i32) -> Self {
+    pub(crate) fn from_raw(code: c_int) -> Self {
         unsafe {
             let message = CStr::from_ptr(raw::ms_errorstr(code)).to_bytes();
             let message = String::from_utf8_lossy(message).into_owned();
@@ -87,7 +87,7 @@ impl MSError {
     }
 
     /// Returns the raw error code associated with this error.
-    pub fn raw_code(&self) -> i32 {
+    pub fn raw_code(&self) -> c_int {
         match self.code {
             MS_NOTSEED => MS_NOTSEED,
             MS_WRONGLENGTH => MS_WRONGLENGTH,
