@@ -111,6 +111,10 @@ impl MSRecord {
     }
 
     /// Create a `MSRecord` from a raw pointer. Takes ownership.
+    ///
+    /// # Safety
+    ///
+    /// Takes ownership of a raw `MS3Record` pointer that was allocated by foreign code.
     pub unsafe fn from_raw(ptr: *mut MS3Record) -> Self {
         Self(ptr)
     }
