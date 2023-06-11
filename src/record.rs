@@ -146,7 +146,7 @@ impl MSRecord {
     /// FDSN Source Identifiers are defined at:
     /// https://docs.fdsn.org/projects/source-identifiers/
     pub fn sid(&self) -> MSResult<String> {
-        let nslc = util::NSLC::from_sid(&self.ptr().sid)?;
+        let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.to_string())
     }
 
@@ -157,25 +157,25 @@ impl MSRecord {
 
     /// Returns the network code identifier of the record.
     pub fn network(&self) -> MSResult<String> {
-        let nslc = util::NSLC::from_sid(&self.ptr().sid)?;
+        let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.net)
     }
 
     /// Returns the station code identifier of the record.
     pub fn station(&self) -> MSResult<String> {
-        let nslc = util::NSLC::from_sid(&self.ptr().sid)?;
+        let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.sta)
     }
 
     /// Returns the location code identifier of the record.
     pub fn location(&self) -> MSResult<String> {
-        let nslc = util::NSLC::from_sid(&self.ptr().sid)?;
+        let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.loc)
     }
 
     /// Returns the channel code identifier of the record.
     pub fn channel(&self) -> MSResult<String> {
-        let nslc = util::NSLC::from_sid(&self.ptr().sid)?;
+        let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.cha)
     }
 

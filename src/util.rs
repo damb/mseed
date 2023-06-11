@@ -54,14 +54,14 @@ pub(crate) fn i8_to_string(buf: &[i8]) -> String {
 
 /// A structure representing network, station, location, and channel identifiers.
 #[derive(Debug, Clone)]
-pub(crate) struct NSLC {
+pub(crate) struct NetStaLocCha {
     pub net: String,
     pub sta: String,
     pub loc: String,
     pub cha: String,
 }
 
-impl NSLC {
+impl NetStaLocCha {
     /// Creates a new `NSLC` structure from a stream identifier buffer slice.
     pub fn from_sid(sid: &[i8]) -> MSResult<Self> {
         let s0 = "           ";
@@ -84,7 +84,7 @@ impl NSLC {
     }
 }
 
-impl fmt::Display for NSLC {
+impl fmt::Display for NetStaLocCha {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let net = CString::new(self.net.as_str()).unwrap().into_raw();
         let sta = CString::new(self.sta.as_str()).unwrap().into_raw();
