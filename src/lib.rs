@@ -18,6 +18,7 @@ pub use crate::record::{MSDataEncoding, MSRecord, MSSampleType};
 
 mod error;
 mod record;
+mod test;
 mod util;
 
 /// A specialized library `Result` type.

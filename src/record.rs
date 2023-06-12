@@ -323,23 +323,17 @@ mod tests {
 
     use super::*;
 
+    use crate::test;
+
     use std::fs::File;
     use std::io::{BufReader, Read};
-    use std::path::PathBuf;
 
     use pretty_assertions::assert_eq;
     use time::format_description::well_known::Iso8601;
 
-    fn test_data_base_dir() -> PathBuf {
-        let mut base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        base_dir.push("tests/data");
-
-        base_dir
-    }
-
     #[test]
     fn test_parse_signal_mseed3() {
-        let mut p = test_data_base_dir();
+        let mut p = test::test_data_base_dir();
         assert!(p.is_dir());
 
         p.push("testdata-3channel-signal.mseed3");
@@ -404,7 +398,7 @@ mod tests {
 
     #[test]
     fn test_parse_signal_mseed2() {
-        let mut p = test_data_base_dir();
+        let mut p = test::test_data_base_dir();
         assert!(p.is_dir());
 
         p.push("testdata-3channel-signal.mseed2");
