@@ -16,11 +16,13 @@ use libmseed_sys as raw;
 pub use crate::error::MSError;
 pub use crate::io::{ConnectionInfo, IntoConnectionInfo, MSFileParam};
 pub use crate::record::{MSDataEncoding, MSRecord, MSSampleType};
+pub use crate::trace::{MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter};
 
 mod error;
 mod io;
 mod record;
 mod test;
+mod trace;
 mod util;
 
 /// A specialized library `Result` type.
