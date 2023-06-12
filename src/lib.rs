@@ -14,9 +14,11 @@ use bitflags::bitflags;
 use libmseed_sys as raw;
 
 pub use crate::error::MSError;
+pub use crate::io::{ConnectionInfo, IntoConnectionInfo, MSFileParam};
 pub use crate::record::{MSDataEncoding, MSRecord, MSSampleType};
 
 mod error;
+mod io;
 mod record;
 mod test;
 mod util;

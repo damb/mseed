@@ -7,9 +7,11 @@ edition = "2021"
 
 [dependencies]
 libmseed-sys = { git = "https://github.com/damb/libmseed-sys" }
-time = { version = "0.3.20", features=["formatting"]}
-num-traits = "0.2"
+
 bitflags = "2.2.1"
+num-traits = "0.2"
+time = { version = "0.3.20", features=["formatting"]}
+url = "2.4"
 
 [dev-dependencies]
 pretty_assertions = "1"
