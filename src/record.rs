@@ -124,7 +124,7 @@ impl MSRecord {
         rv
     }
 
-    /// Unpacks data samples of the record and return the number of unpacked samples.
+    /// Unpacks data samples of the record and returns the number of unpacked samples.
     ///
     /// If the data is already unpacked, the number of previously unpacked samples is returned.
     pub fn unpack_data(&mut self) -> MSResult<c_long> {
@@ -141,7 +141,7 @@ impl MSRecord {
 
     /// Returns the FDSN source identifier.
     ///
-    /// FDSN Source Identifiers are defined at:
+    /// FDSN source identifiers are defined at:
     /// https://docs.fdsn.org/projects/source-identifiers/
     pub fn sid(&self) -> MSResult<String> {
         let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;

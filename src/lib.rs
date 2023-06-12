@@ -23,7 +23,7 @@ mod util;
 /// A specialized library `Result` type.
 pub type MSResult<T> = std::result::Result<T, MSError>;
 
-/// An enumeration of possible errors that can happen when working with MiniSEED records.
+/// An enumeration of possible errors that can happen when working with miniSEED records.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum MSErrorCode {
     /// Generic unspecified error
