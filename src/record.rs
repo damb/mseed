@@ -12,6 +12,7 @@ use crate::{raw, util, MSControlFlags, MSError, MSResult};
 #[repr(i8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSSampleType {
+    Unknown = 0,     // \0
     Text = 116,      // t
     Integer32 = 105, // i
     Float32 = 102,   // f
@@ -20,16 +21,13 @@ pub enum MSSampleType {
 
 impl MSSampleType {
     /// Create a `MSSampleType` from the given `ch`.
-    pub fn from_char(ch: c_char) -> MSResult<Self> {
+    pub fn from_char(ch: c_char) -> Self {
         match ch {
-            116 => Ok(Self::Text),      // t
-            105 => Ok(Self::Integer32), // i
-            102 => Ok(Self::Float32),   // f
-            100 => Ok(Self::Float64),   // d
-            other => Err(MSError::from_str(&format!(
-                "invalid sample type: {}",
-                other
-            ))),
+            116 => Self::Text,      // t
+            105 => Self::Integer32, // i
+            102 => Self::Float32,   // f
+            100 => Self::Float64,   // d
+            _ => Self::Unknown,
         }
     }
 }
@@ -286,7 +284,7 @@ impl MSRecord {
     }
 
     /// Returns the record sample type.
-    pub fn sample_type(&self) -> MSResult<MSSampleType> {
+    pub fn sample_type(&self) -> MSSampleType {
         MSSampleType::from_char(self.ptr().sampletype)
     }
 }
@@ -386,7 +384,7 @@ mod tests {
         assert_eq!(msr.data_size(), 540);
         assert_eq!(msr.num_samples(), 135);
 
-        assert_eq!(msr.sample_type().unwrap(), MSSampleType::Integer32);
+        assert_eq!(msr.sample_type(), MSSampleType::Integer32);
         {
             let mut buf: Vec<i32> = vec![];
             buf.extend_from_slice(msr.data_samples());
@@ -451,7 +449,7 @@ mod tests {
         assert_eq!(msr.data_size(), 540);
         assert_eq!(msr.num_samples(), 135);
 
-        assert_eq!(msr.sample_type().unwrap(), MSSampleType::Integer32);
+        assert_eq!(msr.sample_type(), MSSampleType::Integer32);
         {
             let mut buf: Vec<i32> = vec![];
             buf.extend_from_slice(msr.data_samples());
