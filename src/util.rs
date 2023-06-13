@@ -41,6 +41,10 @@ pub fn nstime_to_string(nst: i64) -> MSResult<String> {
     }
 }
 
+pub fn time_to_nstime(t: &time::OffsetDateTime) -> i64 {
+    t.unix_timestamp()
+}
+
 /// Utility function safely converting a slice of `i8` values into a `String`
 pub(crate) fn i8_to_string(buf: &[i8]) -> String {
     let v: Vec<u8> = buf
