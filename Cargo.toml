@@ -10,9 +10,10 @@ libmseed-sys = { git = "https://github.com/damb/libmseed-sys" }
 
 bitflags = "2.2.1"
 num-traits = "0.2"
-time = { version = "0.3.20", features=["formatting"]}
+time = "0.3.20"
 url = "2.4"
 
 [dev-dependencies]
 pretty_assertions = "1"
+time = { version = "0.3.20", features=["formatting"]}
 
