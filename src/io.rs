@@ -1,15 +1,20 @@
-use std::ffi::CString;
+use std::ffi::{c_char, c_int, c_long, c_void, CString};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::ptr;
+use std::slice::from_raw_parts;
 use std::str::FromStr;
 
 use crate::{
     error::{check, check_eof},
-    raw, MSControlFlags, MSError, MSRecord, MSResult,
+    raw, MSControlFlags, MSDataEncoding, MSError, MSRecord, MSResult, MSTraceList,
 };
 use raw::{MS3FileParam, MS3Record};
 
-/// Holds the connection information that `MSFileParam` should use for reading.
+/// Counterpart of [`MSWriter`].
+pub type MSReader = MSFileParam;
+
+/// Holds the connection information that [`MSFileParam`] should use for reading.
 #[derive(Debug)]
 pub struct ConnectionInfo(CString);
 
@@ -100,7 +105,7 @@ impl FromStr for ConnectionInfo {
     }
 }
 
-/// Converts an object into a `ConnectionInfo` struct. This allows the constructor of the client to
+/// Converts an object into a [`ConnectionInfo`] struct. This allows the constructor of the client to
 /// accept a file path or an URL in a range of different formats.
 pub trait IntoConnectionInfo {
     /// Converts the object into a connection info object.
@@ -184,3 +189,141 @@ fn url_to_connection_info(url: url::Url) -> MSResult<ConnectionInfo> {
 
     Ok(ConnectionInfo(url))
 }
+
+/// Generic miniSEED record writer.
+#[derive(Debug)]
+pub struct MSWriter<W> {
+    writer: W,
+}
+
+impl<W: Write> MSWriter<W> {
+    /// Creates a new `MSWriter`.
+    pub fn new(inner: W) -> MSWriter<W> {
+        Self { writer: inner }
+    }
+
+    /// Consumes this `MSWriter`, returning the underlying writer.
+    pub fn into_inner(self) -> W {
+        self.writer
+    }
+
+    /// Returns a reference to the underlying writer.
+    pub fn get_ref(&self) -> &W {
+        &self.writer
+    }
+
+    /// Returns a mutable reference to the underlying writer.
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.writer
+    }
+
+    /// Writes the miniSEED record `msr` to the underlying writer.
+    ///
+    ///  If `flags` has [`MSControlFlags::MSF_FLUSHDATA`] set, all of the data will be packed into
+    ///  data records even though the last one will probably be smaller than requested or, in the
+    ///  case of miniSEED 2, unfilled.
+    ///  If `flags` has [`MSControlFlags::MSF_PACKVER2`] set `msr` is packed as miniSEED v2
+    ///  regardless of msr's [`MSRecord::formatversion`].
+    pub fn write_record(&mut self, msr: &mut MSRecord, flags: MSControlFlags) -> MSResult<c_long> {
+        // XXX(damb): reimplementation of [`raw::msr3_writemseed`]
+        unsafe {
+            check(raw::msr3_pack(
+                msr.get_raw_mut(),
+                Some(record_handler::<W>),
+                (&mut self.writer) as *mut _ as *mut c_void,
+                ptr::null_mut(),
+                flags.bits(),
+                0,
+            ) as c_long)
+        }
+    }
+
+    /// Writes `mstl` to the underlying writer.
+    pub fn write_trace_list(
+        &mut self,
+        mstl: &mut MSTraceList,
+        flags: MSControlFlags,
+        encoding: MSDataEncoding,
+        max_rec_len: c_int,
+    ) -> MSResult<c_long> {
+        // XXX(damb): reimplementation of [`raw::mstl3_writemseed`]
+        let mut flags = flags;
+        flags |= MSControlFlags::MSF_MAINTAINMSTL;
+        flags |= MSControlFlags::MSF_FLUSHDATA;
+
+        unsafe {
+            check(raw::mstl3_pack(
+                mstl.get_raw_mut(),
+                Some(record_handler::<W>),
+                (&mut self.writer) as *mut _ as *mut c_void,
+                max_rec_len,
+                encoding as c_char,
+                ptr::null_mut(),
+                flags.bits(),
+                0,
+                ptr::null_mut(),
+            ) as c_long)
+        }
+    }
+}
+
+/// Generic record handler callback function used for writing miniSEED records.
+extern "C" fn record_handler<W: Write>(rec: *mut c_char, rec_len: c_int, out: *mut c_void) {
+    let writer: &mut W = unsafe { &mut *(out as *mut W) };
+    let buf = unsafe { from_raw_parts(rec as *mut u8, rec_len.try_into().unwrap()) };
+
+    writer.write(buf).unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    use std::fs::File;
+
+    use std::io::{BufReader, Read};
+
+    use pretty_assertions::assert_eq;
+
+    use crate::{test, MSControlFlags};
+
+    #[test]
+    fn test_read_write_msr() {
+        let test_data = vec![
+            "reference-testdata-text.mseed2",
+            "reference-testdata-text.mseed3",
+            "reference-testdata-steim2.mseed2",
+            "reference-testdata-steim2.mseed3",
+        ];
+
+        for f in &test_data {
+            let mut p = test::test_data_base_dir();
+            assert!(p.is_dir());
+            p.push(f);
+
+            let writer = Vec::new();
+            let mut writer = MSWriter::new(writer);
+            let mut reader =
+                MSReader::new_with_flags(p.clone(), MSControlFlags::MSF_UNPACKDATA).unwrap();
+            while let Some(msr) = reader.next() {
+                let mut msr = msr.unwrap();
+                writer
+                    .write_record(&mut msr, MSControlFlags::MSF_FLUSHDATA)
+                    .unwrap();
+            }
+
+            let mut written = writer.into_inner();
+
+            let reference_file = File::open(p).unwrap();
+            let mut reference_file_reader = BufReader::new(reference_file);
+
+            let mut expected = Vec::new();
+            let expected_bytes_read = reference_file_reader.read_to_end(&mut expected).unwrap();
+
+            assert_eq!(written.len(), expected_bytes_read);
+            assert_eq!(written, expected);
+        }
+    }
+}
+
