@@ -104,12 +104,3 @@ impl fmt::Display for NetStaLocCha {
         write!(f, "{}", sid)
     }
 }
-
-#[cfg(test)]
-mod tests {
-
-    // #[test]
-
-    // TODO(damb)
-}
-
