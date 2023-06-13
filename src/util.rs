@@ -1,10 +1,10 @@
-use std::ffi::CString;
+use std::ffi::{c_char, c_long, CString};
 use std::fmt;
 
 use crate::error::{check, MSError};
 use crate::{raw, MSResult};
 
-pub fn nstime_to_time(nst: i64) -> MSResult<time::OffsetDateTime> {
+pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
     let mut year = 0;
     let mut yday = 0;
     let mut hour = 0;
@@ -26,7 +26,7 @@ pub fn nstime_to_time(nst: i64) -> MSResult<time::OffsetDateTime> {
 }
 
 /// Converts a nanosecond time into a time string
-pub fn nstime_to_string(nst: i64) -> MSResult<String> {
+pub fn nstime_to_string(nst: c_long) -> MSResult<String> {
     let show_subseconds = 1;
     let time_format = raw::ms_timeformat_t_SEEDORDINAL;
     let time = CString::new("                                     ")
@@ -67,7 +67,7 @@ pub(crate) struct NetStaLocCha {
 
 impl NetStaLocCha {
     /// Creates a new `NSLC` structure from a stream identifier buffer slice.
-    pub fn from_sid(sid: &[i8]) -> MSResult<Self> {
+    pub fn from_sid(sid: &[c_char]) -> MSResult<Self> {
         let s0 = "           ";
         let s1 = "                               ";
         let sid = CString::new(i8_to_string(sid)).unwrap().into_raw();
