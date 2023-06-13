@@ -4,7 +4,7 @@ use std::fmt;
 use crate::error::{check, MSError};
 use crate::{raw, MSResult};
 
-pub(crate) fn nstime_to_time(nst: i64) -> MSResult<time::OffsetDateTime> {
+pub fn nstime_to_time(nst: i64) -> MSResult<time::OffsetDateTime> {
     let mut year = 0;
     let mut yday = 0;
     let mut hour = 0;
