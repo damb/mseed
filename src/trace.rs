@@ -9,11 +9,19 @@ use raw::{MS3TraceID, MS3TraceList, MS3TraceSeg};
 
 /// A container for a trace identifier composed by [`MSTraceSegment`]s.
 #[derive(Debug)]
-pub struct MSTraceId(pub(self) *mut MS3TraceID);
+pub struct MSTraceId(*mut MS3TraceID);
 
 impl MSTraceId {
     fn ptr(&self) -> MS3TraceID {
         unsafe { *self.0 }
+    }
+
+    pub(crate) fn get_raw(&self) -> *const MS3TraceID {
+        self.0
+    }
+
+    pub(crate) unsafe fn get_raw_mut(&self) -> *mut MS3TraceID {
+        self.0
     }
 
     /// Returns the FDSN source identifier.
@@ -150,7 +158,7 @@ impl<'id> MSTraceSegment<'id> {
 
         unsafe {
             check(raw::mstl3_unpack_recordlist(
-                self.trace_id.0,
+                self.trace_id.get_raw_mut(),
                 self.inner,
                 ptr::null_mut(),
                 0,
@@ -212,6 +220,14 @@ pub struct MSTraceList {
 impl MSTraceList {
     fn ptr(&self) -> MS3TraceList {
         unsafe { *self.inner }
+    }
+
+    pub(crate) fn get_raw(&mut self) -> *const MS3TraceList {
+        self.inner
+    }
+
+    pub(crate) unsafe fn get_raw_mut(&mut self) -> *mut MS3TraceList {
+        self.inner
     }
 
     /// Creates a new [`MSTraceList`] container

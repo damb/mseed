@@ -86,6 +86,14 @@ impl MSRecord {
         unsafe { *self.0 }
     }
 
+    pub(crate) fn get_raw(&mut self) -> *const MS3Record {
+        self.0
+    }
+
+    pub(crate) unsafe fn get_raw_mut(&mut self) -> *mut MS3Record {
+        self.0
+    }
+
     /// Parse a `MSRecord` from a slice of bytes.
     pub fn parse(buf: &mut [u8], flags: MSControlFlags) -> MSResult<Self> {
         let msr: *mut MS3Record = ptr::null_mut();
