@@ -1,0 +1,3 @@
+[submodule "libmseed-sys/vendor"]
+	path = libmseed-sys/vendor
+	url = git@github.com:EarthScope/libmseed.git

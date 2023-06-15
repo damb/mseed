@@ -1,0 +1,18 @@
+[package]
+name = "libmseed-sys"
+version = "0.1.0+3.0.15"
+authors = ["Daniel Armbruster <dani.armbruster@gmail.com>, Brian Savage <savage13@gmail.com>"]
+links = "mseed"
+build = "build.rs"
+repository = "https://github.com/damb/mseed"
+license = "Apache"
+description = "Native bindings to the libmseed library"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.65.1"
+
