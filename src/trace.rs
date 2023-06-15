@@ -286,6 +286,33 @@ impl<'id> DoubleEndedIterator for MSTraceSegmentIter<'id> {
 }
 
 /// A container for [`MSTraceId`]s.
+///
+/// ```no_run
+/// use std::fs::File;
+///
+/// use mseed::{MSControlFlags, MSReader, MSTraceList};
+///
+/// let mut mstl = MSTraceList::new().unwrap();
+///
+/// let mut reader =
+///     MSReader::new_with_flags("path/to/data.mseed", MSControlFlags::MSF_UNPACKDATA).unwrap();
+///
+/// while let Some(res) = reader.next() {
+///     let msr = res.unwrap();
+///
+///     if msr.network().unwrap() == "NET" && msr.station().unwrap() == "STA" {
+///         mstl.insert(msr, true).unwrap();
+///     }
+/// }
+///
+/// let mstl_iter = mstl.iter();
+/// for tid in mstl_iter {
+///     let tid_iter = tid.iter();
+///     for tseg in tid_iter {
+///         // do something with `tseg`
+///     }
+/// }
+/// ```
 #[derive(Debug)]
 pub struct MSTraceList {
     inner: *mut MS3TraceList,
@@ -368,6 +395,33 @@ mod tests {
     use time::format_description::well_known::Iso8601;
 
     use crate::{test, MSReader, MSSampleType};
+
+    fn foo() {
+        use std::fs::File;
+
+        use crate::{MSControlFlags, MSReader, MSTraceList};
+
+        let mut mstl = MSTraceList::new().unwrap();
+
+        let mut reader =
+            MSReader::new_with_flags("path/to/data.mseed", MSControlFlags::MSF_UNPACKDATA).unwrap();
+
+        while let Some(res) = reader.next() {
+            let msr = res.unwrap();
+
+            if msr.network().unwrap() == "NET" && msr.station().unwrap() == "STA" {
+                mstl.insert(msr, true).unwrap();
+            }
+        }
+
+        let mstl_iter = mstl.iter();
+        for tid in mstl_iter {
+            let tid_iter = tid.iter();
+            for tseg in tid_iter {
+                // do something with `tseg`
+            }
+        }
+    }
 
     #[test]
     fn test_read_unpack_mstl_mseed3() {
