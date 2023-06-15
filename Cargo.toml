@@ -15,7 +15,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libmseed-sys = { git = "https://github.com/damb/libmseed-sys" }
+libmseed-sys = { path = "libmseed-sys", version="0.1.0"}
 
 bitflags = "2.2.1"
 num-traits = "0.2"
