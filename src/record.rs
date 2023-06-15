@@ -76,7 +76,6 @@ impl MSDataEncoding {
     }
 }
 
-// TODO(damb): implement `Clone` trait
 /// miniSEED record structure.
 #[derive(Debug)]
 pub struct MSRecord(*mut MS3Record);
@@ -294,6 +293,17 @@ impl MSRecord {
     /// Returns the record sample type.
     pub fn sample_type(&self) -> MSSampleType {
         MSSampleType::from_char(self.ptr().sampletype)
+    }
+
+    /// Creates a new independently owned [`MSRecord`] from the underlying record.
+    pub fn try_clone(&self) -> MSResult<Self> {
+        let rv = unsafe { raw::msr3_duplicate(self.0, true as i8) };
+
+        if rv.is_null() {
+            return Err(MSError::from_str("failed to duplicate"));
+        }
+
+        Ok(Self(rv))
     }
 }
 
