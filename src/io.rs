@@ -12,6 +12,8 @@ use crate::{
 use raw::{MS3FileParam, MS3Record};
 
 /// Counterpart of [`MSWriter`].
+///
+/// Note that currently only reading miniSEED records from files is implemented.
 pub type MSReader = MSFileParam;
 
 /// Holds the connection information that [`MSFileParam`] should use for reading.
