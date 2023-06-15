@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint};
+use std::ffi::{c_char, c_double, c_float, c_int, c_long, c_uchar, c_uint};
 use std::ptr;
 use std::slice::from_raw_parts;
 
@@ -118,19 +118,23 @@ impl<'id> MSTraceSegment<'id> {
 
     /// Returns the data samples of the trace segment.
     ///
-    /// Note that the data samples are unpacked, if required. An empty slice is returned if unpacking
-    /// the data samples failed.
-    pub fn data_samples<T>(&mut self) -> &[T] {
-        if self.ptr().datasamples.is_null() && self.unpack_data().is_err() {
-            return &[];
+    /// Note that the data samples must have been unpacked, previously. Deferred unpacking of data
+    /// samples from the internal record list is currently not implemented.
+    pub fn data_samples<T: DataSampleType>(&mut self) -> MSResult<&[T]> {
+        if !self.is_data_unpacked() {
+            return Err(MSError::from_str("data samples must be unpacked"));
         }
 
-        unsafe {
+        <T as DataSampleType>::convert_into(self.inner, false)?;
+
+        let rv = unsafe {
             from_raw_parts(
                 self.ptr().datasamples as *mut T,
                 self.ptr().samplecnt as usize,
             )
-        }
+        };
+
+        Ok(rv)
     }
 
     /// Returns the size of the (unpacked) data samples in bytes.
@@ -148,22 +152,92 @@ impl<'id> MSTraceSegment<'id> {
         MSSampleType::from_char(self.ptr().sampletype)
     }
 
-    /// Unpacks data samples of the trace segment and returns the number of unpacked samples.
-    ///
-    /// If the data is already unpacked, the number of previously unpacked samples is returned.
-    pub fn unpack_data(&mut self) -> MSResult<c_long> {
-        if !self.ptr().datasamples.is_null() {
-            return Ok(self.num_samples());
-        }
+    /// Returns whether the data samples are unpacked.
+    pub fn is_data_unpacked(&self) -> bool {
+        self.sample_cnt() == self.num_samples()
+            && self.data_size() > 0
+            && !self.ptr().datasamples.is_null()
+    }
 
-        unsafe {
-            check(raw::mstl3_unpack_recordlist(
-                self.trace_id.get_raw_mut(),
-                self.inner,
-                ptr::null_mut(),
-                0,
-                0,
+    ///// Unpacks data samples of the trace segment and returns the number of unpacked samples.
+    /////
+    ///// If the data is already unpacked, the number of previously unpacked samples is returned.
+    //pub fn unpack_data(&mut self) -> MSResult<c_long> {
+    //    todo!();
+
+    //    if !self.ptr().datasamples.is_null() {
+    //        return Ok(self.num_samples());
+    //    }
+
+    //    unsafe {
+    //        check(raw::mstl3_unpack_recordlist(
+    //            self.trace_id.get_raw_mut(),
+    //            self.inner,
+    //            ptr::null_mut(),
+    //            0,
+    //            0,
+    //        ))
+    //    }
+    //}
+}
+
+pub trait DataSampleType {
+    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()>;
+}
+
+impl DataSampleType for c_uchar {
+    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+        Ok(())
+    }
+}
+
+impl DataSampleType for c_int {
+    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+        let rv = unsafe {
+            check(raw::mstl3_convertsamples(
+                seg,
+                MSSampleType::Integer32 as i8,
+                truncate as i8,
             ))
+        };
+
+        match rv {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl DataSampleType for c_float {
+    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+        let rv = unsafe {
+            check(raw::mstl3_convertsamples(
+                seg,
+                MSSampleType::Float32 as i8,
+                truncate as i8,
+            ))
+        };
+
+        match rv {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl DataSampleType for c_double {
+    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+        let rv = unsafe {
+            check(raw::mstl3_convertsamples(
+                seg,
+                MSSampleType::Float64 as i8,
+                truncate as i8,
+            ))
+        };
+
+        match rv {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
         }
     }
 }
@@ -339,7 +413,7 @@ mod tests {
         let mut trace_id_iter = trace_id.iter();
         let trace_seg = trace_id_iter.next();
         assert!(trace_seg.is_some());
-        let trace_seg = trace_seg.unwrap();
+        let mut trace_seg = trace_seg.unwrap();
         assert_eq!(
             trace_seg
                 .start_time()
@@ -359,6 +433,13 @@ mod tests {
         assert_eq!(trace_seg.sample_cnt(), 3952);
         assert_eq!(trace_seg.sample_type(), MSSampleType::Integer32);
         assert_eq!(trace_seg.num_samples(), 3952);
+
+        let data_samples: &[i32] = trace_seg.data_samples().unwrap();
+        // Test last 4 decoded sample values
+        assert_eq!(data_samples[3948], 28067);
+        assert_eq!(data_samples[3949], -9565);
+        assert_eq!(data_samples[3950], -71961);
+        assert_eq!(data_samples[3951], -146622);
 
         assert!(trace_id_iter.next().is_none());
         assert!(mstl_iter.next().is_none());
@@ -408,7 +489,7 @@ mod tests {
         let mut trace_id_iter = trace_id.iter();
         let trace_seg = trace_id_iter.next();
         assert!(trace_seg.is_some());
-        let trace_seg = trace_seg.unwrap();
+        let mut trace_seg = trace_seg.unwrap();
         assert_eq!(
             trace_seg
                 .start_time()
@@ -428,6 +509,13 @@ mod tests {
         assert_eq!(trace_seg.sample_cnt(), 3952);
         assert_eq!(trace_seg.sample_type(), MSSampleType::Integer32);
         assert_eq!(trace_seg.num_samples(), 3952);
+
+        let data_samples: &[i32] = trace_seg.data_samples().unwrap();
+        // Test last 4 decoded sample values
+        assert_eq!(data_samples[3948], 28067);
+        assert_eq!(data_samples[3949], -9565);
+        assert_eq!(data_samples[3950], -71961);
+        assert_eq!(data_samples[3951], -146622);
 
         assert!(trace_id_iter.next().is_none());
         assert!(mstl_iter.next().is_none());
