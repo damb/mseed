@@ -1,4 +1,4 @@
-//! libmseed bindings for Rust.
+//! # libmseed bindings for Rust.
 //!
 //! This library contains bindings to the [libmseed][1] C library which is used
 //! to manage miniSEED data. The library itself is a work in progress and is
@@ -6,6 +6,40 @@
 //!
 //! [1]: https://github.com/EarthScope/libmseed
 //!
+//! The mseed library strives to be as close to libmseed as possible, but also
+//! strives to make using libmseed as safe as possible. All resource management
+//! is automatic as well as adding strong types to all interfaces (including
+//! `MSResult`)
+//!
+//! ## miniSEED record I/O
+//!
+//! Reading and writing miniSEED records is implemented by means of `MSReader` and `MSWriter`,
+//! respectively.
+//!
+//! ```no_run
+//! use std::fs::OpenOptions;
+//!
+//! use mseed::{MSControlFlags, MSReader, MSWriter};
+//!
+//! let mut reader =
+//!     MSReader::new_with_flags("path/to/in.mseed", MSControlFlags::MSF_UNPACKDATA).unwrap();
+//!
+//! let out_file = OpenOptions::new().write(true).open("out.mseed").unwrap();
+//! let mut writer = MSWriter::new(out_file);
+//!
+//! while let Some(msr) = reader.next() {
+//!     let mut msr = msr.unwrap();
+//!
+//!     if msr.network().unwrap() == "NET" && msr.station().unwrap() == "STA" {
+//!         // do something with msr
+//!
+//!         writer
+//!             .write_record(&mut msr, MSControlFlags::MSF_FLUSHDATA)
+//!             .unwrap();
+//!     }
+//! }
+//!
+//! ```
 
 use std::ffi::c_uint;
 
