@@ -313,7 +313,7 @@ mod tests {
                     .unwrap();
             }
 
-            let mut written = writer.into_inner();
+            let written = writer.into_inner();
 
             let reference_file = File::open(p).unwrap();
             let mut reference_file_reader = BufReader::new(reference_file);
