@@ -5,7 +5,7 @@ authors = ["Daniel Armbruster <dani.armbruster@gmail.com>, Brian Savage <savage1
 links = "mseed"
 build = "build.rs"
 repository = "https://github.com/damb/mseed"
-license = "Apache"
+license = "Apache-2.0"
 description = "Native bindings to the libmseed library"
 edition = "2021"
 
