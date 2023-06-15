@@ -367,7 +367,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use time::format_description::well_known::Iso8601;
 
-    use crate::{test, MSFileParam, MSSampleType};
+    use crate::{test, MSReader, MSSampleType};
 
     #[test]
     fn test_read_unpack_mstl_mseed3() {
@@ -379,7 +379,7 @@ mod tests {
         let mut mstl = MSTraceList::new().unwrap();
 
         let flags = MSControlFlags::MSF_UNPACKDATA;
-        let mut reader = MSFileParam::new_with_flags(p, flags).unwrap();
+        let mut reader = MSReader::new_with_flags(p, flags).unwrap();
 
         while let Some(res) = reader.next() {
             let msr = res.unwrap();
@@ -455,7 +455,7 @@ mod tests {
         let mut mstl = MSTraceList::new().unwrap();
 
         let flags = MSControlFlags::MSF_UNPACKDATA;
-        let mut reader = MSFileParam::new_with_flags(p, flags).unwrap();
+        let mut reader = MSReader::new_with_flags(p, flags).unwrap();
 
         while let Some(res) = reader.next() {
             let msr = res.unwrap();
