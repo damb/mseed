@@ -16,3 +16,8 @@ git clone https://github.com/damb/mseed
 cd mseed
 cargo build
 ```
+
+## License
+
+Licensed under the [Apache-2.0 license](https://www.apache.org/licenses/LICENSE-2.0).
+For more information see the [LICENSE](/LICENSE) file.
