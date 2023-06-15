@@ -186,7 +186,7 @@ pub trait DataSampleType {
 }
 
 impl DataSampleType for c_uchar {
-    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+    fn convert_into(_seg: *mut MS3TraceSeg, _truncate: bool) -> MSResult<()> {
         Ok(())
     }
 }
