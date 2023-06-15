@@ -1,5 +1,7 @@
 # mseed
 
+![status](https://github.com/damb/mseed/actions/workflows/rust.yml/badge.svg)
+
 Rust bindings for [libmseed](https://github.com/EarthScope/libmseed).
 
 ## Version of libmseed
