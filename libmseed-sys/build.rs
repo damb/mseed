@@ -2,11 +2,30 @@ extern crate bindgen;
 
 use std::env;
 use std::path::PathBuf;
-use std::process::Command;
 
 use bindgen::CargoCallbacks;
 
 const LIB_DIR: &str = "vendor";
+const SOURCE_FILES: [&str; 18] = [
+    "fileutils.c",
+    "genutils.c",
+    "gswap.c",
+    "msio.c",
+    "lookup.c",
+    "yyjson.c",
+    "msrutils.c",
+    "extraheaders.c",
+    "pack.c",
+    "packdata.c",
+    "tracelist.c",
+    "gmtime64.c",
+    "crc32c.c",
+    "parseutils.c",
+    "unpack.c",
+    "unpackdata.c",
+    "selection.c",
+    "logging.c",
+];
 
 fn main() {
     let package_dir_path = PathBuf::from(&env::var("CARGO_MANIFEST_DIR").unwrap())
@@ -17,11 +36,17 @@ fn main() {
     let lib_dir_path_str = lib_dir_path.to_str().expect("path is not a valid string");
 
     // build library
-    env::set_current_dir(&lib_dir_path).expect("failed to change directory");
-    Command::new("make")
-        .output()
-        .expect("failed to build library");
-    env::set_current_dir(&package_dir_path).expect("failed to change directory");
+    let mut p = PathBuf::new();
+    p.push(LIB_DIR);
+
+    let mut build = cc::Build::new();
+    for src_file in SOURCE_FILES {
+        let p = p.join(src_file);
+
+        build.file(p);
+    }
+
+    build.compile("mseed");
 
     let headers_path = lib_dir_path.join("libmseed.h");
     if !headers_path.try_exists().is_ok() {
@@ -54,7 +79,6 @@ fn main() {
         .allowlist_function("msr3_.*")
         .generate()
         .expect("Unable to generate bindings");
-    // println!("version: {:?}", bindgen::clang_version());
 
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs");
     bindings
