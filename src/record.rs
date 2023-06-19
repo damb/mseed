@@ -41,18 +41,31 @@ impl MSSampleType {
 #[repr(i8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSDataEncoding {
+    /// Text encoding (UTF-8)
     Text = raw::DE_TEXT as c_char,
+    /// 16-bit integer encoding
     Integer16 = raw::DE_INT16 as c_char,
+    /// 32-bit integer encoding
     Integer32 = raw::DE_INT32 as c_char,
+    /// 32-bit floating point encoding (IEEE)
     Float32 = raw::DE_FLOAT32 as c_char,
+    /// 64-bit floating point encoding (IEEE)
     Float64 = raw::DE_FLOAT64 as c_char,
+    /// Steim-1 compressed integer encoding
     Steim1 = raw::DE_STEIM1 as c_char,
+    /// Steim-2 compressed integer encoding
     Steim2 = raw::DE_STEIM2 as c_char,
+    /// **Legacy**: GEOSCOPE 24-bit integer encoding
     GeoScope24 = raw::DE_GEOSCOPE24 as c_char,
+    /// **Legacy**: GEOSCOPE 16-bit gain ranged, 3-bit exponent
     GeoScope163 = raw::DE_GEOSCOPE163 as c_char,
+    /// **Legacy**: GEOSCOPE 16-bit gain ranged, 4-bit exponent
     GeoScope164 = raw::DE_GEOSCOPE164 as c_char,
+    /// **Legacy**: CDSN 16-bit gain ranged
     CDSN = raw::DE_CDSN as c_char,
+    /// **Legacy**: SRO 16-bit gain ranged
     SRO = raw::DE_SRO as c_char,
+    /// **Legacy**: DWWSSN 16-bit gain ranged
     DWWSSN = raw::DE_DWWSSN as c_char,
 }
 
