@@ -136,7 +136,7 @@ impl MSRecord {
         rv
     }
 
-    /// Unpacks data samples of the record and returns the number of unpacked samples.
+    /// Unpacks the packed data of the record and returns the number of unpacked samples.
     ///
     /// If the data is already unpacked, the number of previously unpacked samples is returned.
     pub fn unpack_data(&mut self) -> MSResult<c_long> {
