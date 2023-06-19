@@ -143,12 +143,7 @@ impl MSRecord {
         if !self.ptr().datasamples.is_null() {
             return Ok(self.num_samples());
         }
-        unsafe {
-            check(raw::msr3_unpack_data(
-                (&mut self.ptr()) as *mut MS3Record,
-                0,
-            ))
-        }
+        unsafe { check(raw::msr3_unpack_data(self.0, 0)) }
     }
 
     /// Returns the FDSN source identifier.
@@ -216,11 +211,7 @@ impl MSRecord {
 
     /// Calculates the end time of the last sample in the record.
     pub fn end_time(&self) -> MSResult<time::OffsetDateTime> {
-        unsafe {
-            util::nstime_to_time(check_nst(raw::msr3_endtime(
-                &mut self.ptr() as *mut MS3Record
-            ))?)
-        }
+        unsafe { util::nstime_to_time(check_nst(raw::msr3_endtime(self.0))?) }
     }
 
     /// Returns the nominal sample rate as samples per second (`Hz`)
@@ -268,21 +259,18 @@ impl MSRecord {
         Some(ret)
     }
 
-    /// Returns the data samples of the record.
-    ///
-    /// Note that the data samples are unpacked, if required. An empty slice is returned if unpacking
-    /// the data samples failed.
-    pub fn data_samples<T>(&mut self) -> &[T] {
-        if self.ptr().datasamples.is_null() && self.unpack_data().is_err() {
-            return &[];
+    /// Returns the (unpacked) data samples of the record if available.
+    pub fn data_samples<T>(&mut self) -> Option<&[T]> {
+        if self.ptr().datasamples.is_null() {
+            return None;
         }
 
-        unsafe {
+        Some(unsafe {
             from_raw_parts(
                 self.ptr().datasamples as *mut T,
                 self.ptr().samplecnt as usize,
             )
-        }
+        })
     }
 
     /// Returns the size of the (unpacked) data samples in bytes.
@@ -404,7 +392,7 @@ mod tests {
         assert_eq!(msr.sample_type(), MSSampleType::Integer32);
         {
             let mut buf: Vec<i32> = vec![];
-            buf.extend_from_slice(msr.data_samples());
+            buf.extend_from_slice(msr.data_samples().unwrap());
             assert_eq!(buf.len(), 135);
             // Test first and last 4 decoded sample values
             assert_eq!(buf[0], -502676);
@@ -469,7 +457,7 @@ mod tests {
         assert_eq!(msr.sample_type(), MSSampleType::Integer32);
         {
             let mut buf: Vec<i32> = vec![];
-            buf.extend_from_slice(msr.data_samples());
+            buf.extend_from_slice(msr.data_samples().unwrap());
             assert_eq!(buf.len(), 135);
             // Test first and last 4 decoded sample values
             assert_eq!(buf[0], -502676);
