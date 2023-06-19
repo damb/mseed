@@ -71,6 +71,7 @@ fn main() {
         .allowlist_var("DE_.*")
         .allowlist_var("MSF_.*")
         .allowlist_var("NSTERROR")
+        .allowlist_var("LM_SIDLEN")
         .allowlist_function("ms_.*")
         .allowlist_function("msr_.*")
         .allowlist_function("ms3_.*")
