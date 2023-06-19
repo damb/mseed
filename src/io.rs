@@ -225,7 +225,7 @@ impl<W: Write> MSWriter<W> {
     ///  data records even though the last one will probably be smaller than requested or, in the
     ///  case of miniSEED 2, unfilled.
     ///  If `flags` has [`MSControlFlags::MSF_PACKVER2`] set `msr` is packed as miniSEED v2
-    ///  regardless of msr's [`MSRecord::formatversion`].
+    ///  regardless of msr's [`MSRecord::format_version`].
     pub fn write_record(&mut self, msr: &mut MSRecord, flags: MSControlFlags) -> MSResult<c_long> {
         // XXX(damb): reimplementation of [`raw::msr3_writemseed`]
         unsafe {

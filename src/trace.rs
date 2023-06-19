@@ -27,7 +27,7 @@ impl MSTraceId {
     /// Returns the FDSN source identifier.
     ///
     /// FDSN source identifiers are defined at:
-    /// https://docs.fdsn.org/projects/source-identifiers/
+    /// `<https://docs.fdsn.org/projects/source-identifiers/>`
     pub fn sid(&self) -> MSResult<String> {
         let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.to_string())
