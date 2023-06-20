@@ -123,7 +123,7 @@ where
 /// let flags = MSControlFlags::MSF_FLUSHDATA;
 /// let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
 ///
-/// let mut payload : Vec<u8> = "Hello, miniSEED!".bytes().collect();
+/// let mut payload: Vec<u8> = "Hello, miniSEED!".bytes().collect();
 /// mseed::pack(&mut payload, &start_time, record_handler, &pack_info, flags).unwrap();
 ///
 /// # Ok(())
