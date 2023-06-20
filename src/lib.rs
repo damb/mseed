@@ -87,25 +87,25 @@ bitflags! {
     /// Parsing, packing and trace construction control flags.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct MSControlFlags: c_uint {
-        /// [Parsing] Unpack data samples
+        /// **Parsing**: Unpack data samples.
         const MSF_UNPACKDATA = raw::MSF_UNPACKDATA;
-        /// [Parsing] Skip input that cannot be identified as miniSEED
+        /// **Parsing**: Skip input that cannot be identified as miniSEED.
         const MSF_SKIPNOTDATA = raw::MSF_SKIPNOTDATA;
-        /// [Parsing] Validate CRC (if version 3)
+        /// **Parsing**: Validate CRC (if version 3).
         const MSF_VALIDATECRC = raw::MSF_VALIDATECRC;
-        /// [Parsing] Parse and utilize byte range from path name suffix
+        /// **Parsing**: Parse and utilize byte range from path name suffix.
         const MSF_PNAMERANGE = raw::MSF_PNAMERANGE;
-        /// [Parsing] Reading routine is at the end of the file
+        /// **Parsing**: Reading routine is at the end of the file.
         const MSF_ATENDOFFILE = raw::MSF_ATENDOFFILE;
-        /// [Packing] UNSUPPORTED: Maintain a record-level sequence number
+        /// **Packing**: UNSUPPORTED: Maintain a record-level sequence number.
         const MSF_SEQUENCE = raw::MSF_SEQUENCE;
-        /// [Packing] Pack all available data even if final record would not be filled
+        /// **Packing**: Pack all available data even if final record would not be filled.
         const MSF_FLUSHDATA = raw::MSF_FLUSHDATA;
-        /// [Packing] Pack as miniSEED version 2 instead of 3
+        /// **Packing**: Pack as miniSEED version 2 instead of version 3.
         const MSF_PACKVER2 = raw::MSF_PACKVER2;
-        ///  [TraceList] Build a MS3RecordList for each MS3TraceSeg
+        ///  **TraceList**: Build a [`raw::MS3RecordList`] for each [`raw::MS3TraceSeg`].
         const MSF_RECORDLIST = raw::MSF_RECORDLIST;
-        /// [TraceList] Do not modify a trace list when packing
+        /// **TraceList**: Do not modify a trace list when packing.
         const MSF_MAINTAINMSTL = raw::MSF_MAINTAINMSTL;
     }
 }
