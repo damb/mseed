@@ -11,6 +11,10 @@ Rust bindings for [libmseed](https://github.com/EarthScope/libmseed).
 For the crate's documentation please refer to
 [docs.rs/mseed/](https://docs.rs/mseed/).
 
+## Examples
+
+Please refer to the libraries' [examples](examples/).
+
 ## Version of libmseed
 
 Currently this library requires `libmseed` version 3.0.15 (or newer patch
