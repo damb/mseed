@@ -210,18 +210,19 @@ where
         })?;
         (*msr).datasamples = data_samples.as_mut_ptr() as *mut _ as *mut c_void;
         (*msr).datasize = mem::size_of_val(data_samples);
+        (*msr).extralength = 0;
+        (*msr).extra = ptr::null_mut();
     }
 
-    let mut extra_headers_ptr = ptr::null_mut();
     if let Some(extra_headers) = &info.extra_headers {
-        let cloned = extra_headers.clone();
+        let mut cloned = extra_headers.clone();
         unsafe {
             (*msr).extralength =
                 c_ushort::try_from(cloned.as_bytes_with_nul().len()).map_err(|e| {
                     MSError::from_str(&format!("invalid extra header length ({})", e.to_string()))
                 })?;
+            (*msr).extra = cloned.into_raw();
         }
-        extra_headers_ptr = cloned.into_raw();
     }
 
     let mut rv: c_long = 0;
@@ -238,10 +239,15 @@ where
         ))?
     };
 
-    if !extra_headers_ptr.is_null() {
-        unsafe {
-            let _ = CString::from_raw(extra_headers_ptr);
+    unsafe {
+        let mut extra_ptr = (*msr).extra;
+        if !extra_ptr.is_null() {
+            let _ = CString::from_raw(extra_ptr);
+            extra_ptr = ptr::null_mut();
         }
+        (*msr).datasamples = ptr::null_mut();
+        (*msr).numsamples = 0;
+        (*msr).datasize = 0;
     }
 
     Ok(rv)
