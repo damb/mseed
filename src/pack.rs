@@ -215,7 +215,7 @@ where
     }
 
     if let Some(extra_headers) = &info.extra_headers {
-        let mut cloned = extra_headers.clone();
+        let cloned = extra_headers.clone();
         unsafe {
             (*msr).extralength =
                 c_ushort::try_from(cloned.as_bytes_with_nul().len()).map_err(|e| {
@@ -240,10 +240,10 @@ where
     };
 
     unsafe {
-        let mut extra_ptr = (*msr).extra;
+        let extra_ptr = (*msr).extra;
         if !extra_ptr.is_null() {
             let _ = CString::from_raw(extra_ptr);
-            extra_ptr = ptr::null_mut();
+            (*msr).extra = ptr::null_mut();
         }
         (*msr).datasamples = ptr::null_mut();
         (*msr).numsamples = 0;
