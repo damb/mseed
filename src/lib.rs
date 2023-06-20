@@ -43,7 +43,7 @@
 //!
 //! ## Low-level miniSEED record I/O
 //!
-//! Creating miniSEED records from raw data samples, is possible using the low-level [`pack()`]
+//! Creating miniSEED records from raw data samples is possible using the low-level [`pack()`]
 //! function:
 //!
 //! ```no_run
@@ -145,7 +145,7 @@ bitflags! {
         const MSF_FLUSHDATA = raw::MSF_FLUSHDATA;
         /// **Packing**: Pack as miniSEED version 2 instead of version 3.
         const MSF_PACKVER2 = raw::MSF_PACKVER2;
-        ///  **TraceList**: Build a [`raw::MS3RecordList`] for each [`raw::MS3TraceSeg`].
+        /// **TraceList**: Build a [`raw::MS3RecordList`] for each [`raw::MS3TraceSeg`].
         const MSF_RECORDLIST = raw::MSF_RECORDLIST;
         /// **TraceList**: Do not modify a trace list when packing.
         const MSF_MAINTAINMSTL = raw::MSF_MAINTAINMSTL;

@@ -385,11 +385,11 @@ impl MSTraceList {
     /// Packs the trace lists' data into miniSEED records.
     ///
     /// Buffers containing the packed miniSEED records are passed to the `record_handler` closure.
-    /// Returns on success a tuple where the first element is the number of totally packed records
-    /// and the second element is the number of totally packed samples.
+    /// Returns on success a tuple where the first value is the number of totally packed records
+    /// and the second value is the number of totally packed samples.
     ///
-    /// Packing is controlled by `flags`:
-    /// - If flags` has [`MSControlFlags::MSF_FLUSHDATA`] set, all of the `data_samples `will be
+    /// Packing is controlled by the following `flags`:
+    /// - If `flags` has [`MSControlFlags::MSF_FLUSHDATA`] set, all of the trace lists' data will be
     /// packed into miniSEED records even though the last one will probably be smaller than
     /// requested or, in the case of miniSEED v2, unfilled.
     /// - If `flags` has [`MSControlFlags::MSF_PACKVER2`] set records are packed as miniSEED v2.
@@ -446,7 +446,7 @@ impl Drop for MSTraceList {
 
 /// Struct aggregating [`MSTraceList`] packing information.
 ///
-/// See also [`PackInfo`].
+/// See also [`PackInfo`](crate::PackInfo).
 #[derive(Debug, Clone)]
 pub struct TlPackInfo {
     // /// The miniSEED format version.

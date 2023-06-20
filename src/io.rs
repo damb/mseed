@@ -29,7 +29,7 @@ pub struct MSFileParam {
 }
 
 impl MSFileParam {
-    /// Creates a new `MSFileParam` state container from `path_or_url`
+    /// Creates a new `MSFileParam` state container from `path_or_url`.
     pub fn new<T: IntoConnectionInfo>(path_or_url: T) -> MSResult<Self> {
         let connection_info = path_or_url.into_connection_info()?;
 
@@ -40,7 +40,7 @@ impl MSFileParam {
         })
     }
 
-    /// Creates a new `MSFileParam` state container from `path_or_url` and control flags `flags`
+    /// Creates a new `MSFileParam` state container from `path_or_url` and control flags `flags`.
     pub fn new_with_flags<T: IntoConnectionInfo>(
         path_or_url: T,
         flags: MSControlFlags,
