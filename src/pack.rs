@@ -130,6 +130,43 @@ where
 /// # }
 ///
 /// ```
+///
+/// The `record_handler` closure may be customized to process the injected packed miniSEED record
+/// buffers. For instance, writing the records to a file may be implemented as follows:
+///
+/// ```no_run
+/// use std::fs::OpenOptions;
+/// use std::io::{BufWriter, Write};
+///
+/// use time::format_description::well_known::Iso8601;
+/// use time::OffsetDateTime;
+///
+/// use mseed::{self, MSControlFlags, PackInfo};
+///
+/// let mut pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
+///
+/// let file = OpenOptions::new()
+///     .create(true)
+///     .write(true)
+///     .open("path/to/out.mseed")
+///     .unwrap();
+/// let mut writer = BufWriter::new(file);
+///
+/// let record_handler = move |rec: &[u8]| {
+///     let _ = writer.write(rec);
+/// };
+///
+/// let mut data_samples: Vec<i32> = (1..100).collect();
+/// let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
+/// mseed::pack(
+///     &mut data_samples,
+///     &start_time,
+///     record_handler,
+///     &pack_info,
+///     MSControlFlags::MSF_FLUSHDATA,
+/// )
+/// .unwrap();
+/// ```
 pub fn pack<T, F>(
     data_samples: &mut [T],
     start_time: &time::OffsetDateTime,
