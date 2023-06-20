@@ -25,7 +25,7 @@ pub enum MSSampleType {
 }
 
 impl MSSampleType {
-    /// Create a `MSSampleType` from the given `ch`.
+    /// Creates a `MSSampleType` from the given `ch`.
     pub fn from_char(ch: c_char) -> Self {
         match ch {
             116 => Self::Text,      // t
@@ -98,7 +98,7 @@ impl MSRecord {
         self.0
     }
 
-    /// Parse a `MSRecord` from a slice of bytes.
+    /// Parses a `MSRecord` from a slice of bytes.
     pub fn parse(buf: &mut [u8], flags: MSControlFlags) -> MSResult<Self> {
         let msr: *mut MS3Record = ptr::null_mut();
         let mut msr = unsafe { raw::msr3_init(msr) };
@@ -120,7 +120,7 @@ impl MSRecord {
         Ok(Self(msr))
     }
 
-    /// Create a `MSRecord` from a raw pointer. Takes ownership.
+    /// Creates a `MSRecord` from a raw pointer. Takes ownership.
     ///
     /// # Safety
     ///
