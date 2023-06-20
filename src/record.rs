@@ -12,11 +12,16 @@ use crate::{raw, util, MSControlFlags, MSError, MSResult};
 #[repr(i8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSSampleType {
-    Unknown = 0,     // \0
-    Text = 116,      // t
+    /// Unknown data sample type.
+    Unknown = 0, // \0
+    /// Text data samples (UTF-8).
+    Text = 116, // t
+    /// 32-bit integer data samples.
     Integer32 = 105, // i
-    Float32 = 102,   // f
-    Float64 = 100,   // d
+    /// 32-bit float (IEEE) data samples.
+    Float32 = 102, // f
+    /// 64-bit float (IEEE) data samples.
+    Float64 = 100, // d
 }
 
 impl MSSampleType {
