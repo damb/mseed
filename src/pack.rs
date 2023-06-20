@@ -255,7 +255,7 @@ where
     Ok(rv)
 }
 
-extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
+pub(crate) extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
 where
     F: FnMut(&[u8]),
 {

@@ -92,6 +92,7 @@ pub use crate::pack::{pack, PackInfo};
 pub use crate::record::{MSDataEncoding, MSRecord, MSSampleType};
 pub use crate::trace::{
     DataSampleType, MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter,
+    TlPackInfo,
 };
 
 mod error;
