@@ -248,6 +248,8 @@ where
         (*msr).datasamples = ptr::null_mut();
         (*msr).numsamples = 0;
         (*msr).datasize = 0;
+
+        raw::msr3_free((&mut msr) as *mut *mut _);
     }
 
     Ok(rv)
