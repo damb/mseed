@@ -174,7 +174,14 @@ pub fn parse_url(input: &str) -> Option<url::Url> {
         },
         Err(e) => match e {
             url::ParseError::RelativeUrlWithoutBase => {
-                let input = format!("file://{}", input);
+                // prefix relative paths with "./" to prevent `URL::parse()` from adding a trailing
+                // slash
+                let prefix = if Path::new(input).is_relative() {
+                    "./"
+                } else {
+                    ""
+                };
+                let input = format!("file://{}{}", prefix, input);
                 parse_url(&input)
             }
             _ => None,
