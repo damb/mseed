@@ -545,9 +545,10 @@ struct Args {
     #[arg(short = 'r', long, value_name = "BYTES", default_value_t = 4096)]
     rec_len: i32,
 
-    /// Create miniSEED v2 format, default is miniSEED v3.
-    #[arg(short = '2', long)]
-    mseed_v2: bool,
+    /// Specify miniSEED version format.
+    #[arg(short = 'F', long, value_name = "FORMAT", default_value_t = 3)]
+    #[arg(value_parser = clap::value_parser!(u8).range(2..4))]
+    format: u8,
 
     /// Path to output file.
     #[arg(value_name = "FILE")]
@@ -582,6 +583,7 @@ fn main() {
 
     let mut pack_info = PackInfo::with_sample_rate("FDSN:XX_TEST__X_Y_Z", 1.0).unwrap();
     pack_info.rec_len = args.rec_len;
+    pack_info.format_version = args.format;
 
     let file = OpenOptions::new()
         .create(true)
@@ -595,11 +597,7 @@ fn main() {
     };
 
     let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
-
-    let mut flags = MSControlFlags::MSF_FLUSHDATA;
-    if args.mseed_v2 {
-        flags |= MSControlFlags::MSF_PACKVER2;
-    }
+    let flags = MSControlFlags::MSF_FLUSHDATA;
 
     match args.encoding {
         DataEncoding::Text => {
