@@ -1,6 +1,8 @@
 # mseed
 
-![status](https://github.com/damb/mseed/actions/workflows/rust.yml/badge.svg)
+[![Crates.io](https://img.shields.io/crates/v/mseed)](https://crates.io/crates/mseed)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/damb/mseed/rust.yml?branch=main)](https://github.com/damb/mseed/actions/workflows/rust.yml?query=branch%3Amain)
 
 Rust bindings for [libmseed](https://github.com/EarthScope/libmseed).
 
