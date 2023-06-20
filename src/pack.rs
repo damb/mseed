@@ -23,6 +23,9 @@ pub struct PackInfo {
     /// Record length used for encoding.
     pub rec_len: c_int,
     /// Extra headers.
+    ///
+    /// If not `None` it is expected to contain extra headers, i.e. a string containing (compact)
+    /// JSON, that will be added to each output record.
     pub extra_headers: Option<CString>,
 }
 
