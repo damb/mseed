@@ -11,9 +11,9 @@
 //! is automatic as well as adding strong types to all interfaces (including
 //! `MSResult`)
 //!
-//! ## miniSEED record I/O
+//! ## High-level miniSEED record I/O
 //!
-//! Reading and writing miniSEED records is implemented by means of `MSReader` and `MSWriter`,
+//! Reading and writing miniSEED records is implemented by means of [`MSReader`] and [`MSWriter`],
 //! respectively.
 //!
 //! ```no_run
@@ -38,7 +38,46 @@
 //!             .unwrap();
 //!     }
 //! }
+//! ```
 //!
+//!
+//! ## Low-level miniSEED record I/O
+//!
+//! Creating miniSEED records from raw data samples, is possible using the low-level [`pack()`]
+//! function:
+//!
+//! ```no_run
+//! use std::fs::OpenOptions;
+//! use std::io::{BufWriter, Write};
+//!
+//! use time::format_description::well_known::Iso8601;
+//! use time::OffsetDateTime;
+//!
+//! use mseed::{self, MSControlFlags, PackInfo};
+//!
+//! let mut pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
+//!
+//! let file = OpenOptions::new()
+//!     .create(true)
+//!     .write(true)
+//!     .open("path/to/out.mseed")
+//!     .unwrap();
+//! let mut writer = BufWriter::new(file);
+//!
+//! let record_handler = move |rec: &[u8]| {
+//!     let _ = writer.write(rec);
+//! };
+//!
+//! let mut data_samples: Vec<i32> = (1..100).collect();
+//! let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
+//! mseed::pack(
+//!     &mut data_samples,
+//!     &start_time,
+//!     record_handler,
+//!     &pack_info,
+//!     MSControlFlags::MSF_FLUSHDATA,
+//! )
+//! .unwrap();
 //! ```
 
 use std::ffi::c_uint;
