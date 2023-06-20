@@ -59,6 +59,7 @@ impl PackInfo {
         &self.sid
     }
 
+    /// Sets the FDSN source identifier.
     pub fn set_sid<T>(&mut self, sid: T) -> MSResult<()>
     where
         T: Into<Vec<u8>>,
