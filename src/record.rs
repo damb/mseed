@@ -103,7 +103,7 @@ impl MSRecord {
         unsafe { *self.0 }
     }
 
-    pub(crate) fn get_raw(&mut self) -> *const MS3Record {
+    pub(crate) fn get_raw(&self) -> *const MS3Record {
         self.0
     }
 
@@ -257,15 +257,15 @@ impl MSRecord {
         self.ptr().datalength
     }
 
-    /// Returns the record's extra headers, if available.
-    pub fn extra_headers(&mut self) -> Option<&[c_uchar]> {
+    /// Returns the records' extra headers, if available.
+    pub fn extra_headers(&self) -> Option<&[c_uchar]> {
         if self.ptr().extra.is_null() || self.ptr().extralength == 0 {
             return None;
         }
 
         let ret = unsafe {
             from_raw_parts(
-                self.ptr().extra as *mut c_uchar,
+                self.ptr().extra as *const c_uchar,
                 self.ptr().extralength as usize,
             )
         };
