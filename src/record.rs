@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ushort};
+use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ulong, c_ushort};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -123,7 +123,7 @@ impl MSRecord {
             let buf = &mut *(buf as *mut [u8] as *mut [c_char]);
             check(raw::msr3_parse(
                 buf.as_mut().as_mut_ptr(),
-                buf.as_mut().len() as u64,
+                buf.as_mut().len() as c_ulong,
                 (&mut msr) as *mut *mut MS3Record,
                 flags.bits(),
                 0,
