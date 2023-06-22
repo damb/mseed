@@ -40,7 +40,7 @@ fn main() {
         let mut buf = rec.to_vec();
         let msr = MSRecord::parse(&mut buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
 
-        println!("{}", msr);
+        print!("{}", msr.display(0));
     };
 
     // Create a reader
