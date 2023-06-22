@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ulong, c_ushort};
+use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ulong, c_ushort, CStr};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -90,6 +90,21 @@ impl MSDataEncoding {
                 "invalid data encoding type: {}",
                 other
             ))),
+        }
+    }
+}
+
+impl fmt::Display for MSDataEncoding {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            let encoding = CStr::from_ptr(raw::ms_encodingstr(
+                (*self as c_char)
+                    .try_into()
+                    .map_err(|_| fmt::Error)
+                    .unwrap(),
+            ))
+            .to_string_lossy();
+            write!(f, "{}", encoding)
         }
     }
 }
