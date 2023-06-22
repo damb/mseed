@@ -23,7 +23,7 @@ impl MSTraceId {
         self.0
     }
 
-    pub(crate) unsafe fn get_raw_mut(&self) -> *mut MS3TraceID {
+    pub(crate) unsafe fn get_raw_mut(&mut self) -> *mut MS3TraceID {
         self.0
     }
 
@@ -326,7 +326,7 @@ impl MSTraceList {
         unsafe { *self.inner }
     }
 
-    pub(crate) fn get_raw(&mut self) -> *const MS3TraceList {
+    pub(crate) fn get_raw(&self) -> *const MS3TraceList {
         self.inner
     }
 
