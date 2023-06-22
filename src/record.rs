@@ -323,7 +323,7 @@ impl fmt::Display for MSRecord {
             v.pubversion,
             v.reclen,
             v.samplecnt,
-            v.samprate,
+            self.sample_rate_hz(),
             util::nstime_to_string(v.starttime).unwrap_or("invalid".to_string())
         )
     }
