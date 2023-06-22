@@ -88,8 +88,9 @@ where
 /// Low level function that packs `data_samples` into miniSEED records.
 ///
 /// `start_time` is the time of the first data sample. Buffers containing the packed miniSEED
-/// records are passed to the `record_handler` closure. Returns the number of totally packed
-/// samples.
+/// records are passed to the `record_handler` closure. Returns on success a tuple where the first
+/// value is the number of totally packed records and the second value is the number of totally
+/// packed samples.
 ///
 /// If `flags` has [`MSControlFlags::MSF_FLUSHDATA`] set, all of the `data_samples `will be packed
 /// into miniSEED records even though the last one will probably be smaller than requested or, in
@@ -128,8 +129,17 @@ where
 /// let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
 ///
 /// let mut payload: Vec<u8> = "Hello, miniSEED!".bytes().collect();
-/// mseed::pack(&mut payload, &start_time, record_handler, &pack_info, flags).unwrap();
+/// let (cnt_records, cnt_samples) = mseed::pack(
+///     &mut payload,
+///     &start_time,
+///     record_handler,
+///     &pack_info,
+///     flags,
+/// )
+/// .unwrap();
 ///
+/// assert_eq!(cnt_records, 1);
+/// assert_eq!(cnt_samples, 16);
 /// # Ok(())
 /// # }
 ///
@@ -177,7 +187,7 @@ pub fn pack<T, F>(
     mut record_handler: F,
     info: &PackInfo,
     flags: MSControlFlags,
-) -> MSResult<c_long>
+) -> MSResult<(c_long, c_long)>
 where
     F: FnMut(&[u8]),
 {
@@ -225,15 +235,15 @@ where
         }
     }
 
-    let mut rv: c_long = 0;
-    let rv_ptr = &mut rv as *mut _;
+    let mut cnt_samples: c_long = 0;
+    let cnt_samples_ptr = &mut cnt_samples as *mut _;
 
-    unsafe {
+    let cnt_records = unsafe {
         check(raw::msr3_pack(
             msr,
             Some(rh_wrapper::<F>),
             (&mut record_handler) as *mut _ as *mut c_void,
-            rv_ptr,
+            cnt_samples_ptr,
             flags.bits(),
             0,
         ))?
@@ -252,10 +262,10 @@ where
         raw::msr3_free((&mut msr) as *mut *mut _);
     }
 
-    Ok(rv)
+    Ok((cnt_records.into(), cnt_samples))
 }
 
-extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
+pub(crate) extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
 where
     F: FnMut(&[u8]),
 {

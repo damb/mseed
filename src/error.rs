@@ -99,7 +99,7 @@ impl MSError {
         }
     }
 
-    /// Returns the message associated with this error
+    /// Returns the message associated with this error.
     pub fn message(&self) -> &str {
         &self.message
     }
