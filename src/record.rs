@@ -232,6 +232,11 @@ impl MSRecord {
         self.ptr().formatversion
     }
 
+    /// Returns the record level bit flags.
+    pub fn flags(&self) -> c_uchar {
+        self.ptr().flags
+    }
+
     /// Returns the start time of the record (i.e. the time of the first sample).
     pub fn start_time(&self) -> MSResult<time::OffsetDateTime> {
         util::nstime_to_time(self.ptr().starttime)
