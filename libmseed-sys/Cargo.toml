@@ -12,6 +12,7 @@ exclude = [
   "vendor/example/*",
   "vendor/test/*",
 ]
+categories = ["external-ffi-bindings"]
 edition = "2021"
 
 [lib]
