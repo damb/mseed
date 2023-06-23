@@ -94,6 +94,7 @@ pub use crate::trace::{
     DataSampleType, MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter,
     TlPackInfo,
 };
+pub use crate::util::{MSSubSeconds, MSTimeFormat};
 
 mod error;
 mod io;

@@ -6,7 +6,7 @@ use std::slice::from_raw_parts;
 use raw::MS3Record;
 
 use crate::error::{check, check_nst};
-use crate::{raw, util, MSControlFlags, MSError, MSResult};
+use crate::{raw, util, MSControlFlags, MSError, MSResult, MSSubSeconds, MSTimeFormat};
 
 /// An enumeration of possible sample types.
 #[repr(i8)]
@@ -371,7 +371,12 @@ impl fmt::Display for MSRecord {
             v.reclen,
             v.samplecnt,
             self.sample_rate_hz(),
-            util::nstime_to_string(v.starttime).unwrap_or("invalid".to_string())
+            util::nstime_to_string(
+                v.starttime,
+                MSTimeFormat::IsoMonthDayDoyZ,
+                MSSubSeconds::NanoMicro
+            )
+            .unwrap_or("invalid".to_string())
         )
     }
 }
@@ -414,7 +419,12 @@ impl fmt::Display for RecordDisplay<'_> {
                 self.rec.format_version()
             )?;
             let start_time = unsafe { (*self.rec.get_raw()).starttime };
-            let start_time = util::nstime_to_string(start_time).unwrap_or("invalid".to_string());
+            let start_time = util::nstime_to_string(
+                start_time,
+                MSTimeFormat::IsoMonthDayDoyZ,
+                MSSubSeconds::NanoMicro,
+            )
+            .unwrap_or("invalid".to_string());
             writeln!(f, "             start time: {}", start_time)?;
             writeln!(f, "      number of samples: {}", self.rec.sample_cnt())?;
             writeln!(f, "       sample rate (Hz): {}", self.rec.sample_rate_hz())?;

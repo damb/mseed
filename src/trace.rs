@@ -5,7 +5,7 @@ use std::slice::from_raw_parts;
 
 use crate::{
     error::check, pack, raw, util, MSControlFlags, MSDataEncoding, MSError, MSRecord, MSResult,
-    MSSampleType,
+    MSSampleType, MSSubSeconds, MSTimeFormat,
 };
 use time::OffsetDateTime;
 
@@ -449,9 +449,16 @@ impl MSTraceList {
     /// If `version` is greater than zero, the publication version is included.
     ///
     ///  [`Display`]: fmt::Display
-    pub fn display(&self, detail: i8, gap: i8, version: i8) -> TraceListDisplay<'_> {
+    pub fn display(
+        &self,
+        time_format: MSTimeFormat,
+        detail: i8,
+        gap: i8,
+        version: i8,
+    ) -> TraceListDisplay<'_> {
         TraceListDisplay {
             mstl: self,
+            time_format,
             detail,
             gap,
             version,
@@ -496,6 +503,7 @@ impl Default for TlPackInfo {
 /// Helper struct for printing `MSTraceList` with [`format!`] and `{}`.
 pub struct TraceListDisplay<'a> {
     mstl: &'a MSTraceList,
+    time_format: MSTimeFormat,
     detail: i8,
     gap: i8,
     version: i8,
@@ -536,10 +544,14 @@ impl fmt::Display for TraceListDisplay<'_> {
             };
             for tseg in tid.iter() {
                 let start_time = unsafe { (*tseg.inner).starttime };
-                let start_time_str = util::nstime_to_string(start_time).map_err(|_| fmt::Error)?;
+                let start_time_str =
+                    util::nstime_to_string(start_time, self.time_format, MSSubSeconds::NanoMicro)
+                        .map_err(|_| fmt::Error)?;
 
                 let end_time = unsafe { (*tseg.inner).endtime };
-                let end_time_str = util::nstime_to_string(end_time).map_err(|_| fmt::Error)?;
+                let end_time_str =
+                    util::nstime_to_string(end_time, self.time_format, MSSubSeconds::NanoMicro)
+                        .map_err(|_| fmt::Error)?;
 
                 if self.gap > 0 {
                     let mut gap: f64 = 0.0;

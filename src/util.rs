@@ -4,6 +4,66 @@ use std::fmt;
 use crate::error::{check, MSError};
 use crate::{raw, MSResult};
 
+/// Enumeration of time format identifiers.
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum MSTimeFormat {
+    IsoMonthDay,
+    IsoMonthDayZ,
+    IsoMontDayDoy,
+    IsoMonthDayDoyZ,
+    IsoMonthDaySpace,
+    IsoMonthDaySpaceZ,
+    SeedOrdinal,
+    UnixEpoch,
+    NanoSecondEpoch,
+}
+
+impl MSTimeFormat {
+    pub fn as_raw(&self) -> raw::ms_timeformat_t {
+        use MSTimeFormat::*;
+
+        match *self {
+            IsoMonthDay => raw::ms_timeformat_t_ISOMONTHDAY,
+            IsoMonthDayZ => raw::ms_timeformat_t_ISOMONTHDAY_Z,
+            IsoMontDayDoy => raw::ms_timeformat_t_ISOMONTHDAY_DOY,
+            IsoMonthDayDoyZ => raw::ms_timeformat_t_ISOMONTHDAY_DOY_Z,
+            IsoMonthDaySpace => raw::ms_timeformat_t_ISOMONTHDAY_SPACE,
+            IsoMonthDaySpaceZ => raw::ms_timeformat_t_ISOMONTHDAY_SPACE_Z,
+            SeedOrdinal => raw::ms_timeformat_t_SEEDORDINAL,
+            UnixEpoch => raw::ms_timeformat_t_UNIXEPOCH,
+            NanoSecondEpoch => raw::ms_timeformat_t_NANOSECONDEPOCH,
+        }
+    }
+}
+
+/// Enumeration of subsecond format identifiers.
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum MSSubSeconds {
+    None,
+    Micro,
+    Nano,
+    MicroNone,
+    NanoNone,
+    NanoMicro,
+    NanoMicroNone,
+}
+
+impl MSSubSeconds {
+    pub fn as_raw(&self) -> raw::ms_subseconds_t {
+        use MSSubSeconds::*;
+
+        match *self {
+            None => raw::ms_subseconds_t_NONE,
+            Micro => raw::ms_subseconds_t_MICRO,
+            Nano => raw::ms_subseconds_t_NANO,
+            MicroNone => raw::ms_subseconds_t_MICRO_NONE,
+            NanoNone => raw::ms_subseconds_t_NANO_NONE,
+            NanoMicro => raw::ms_subseconds_t_NANO_MICRO,
+            NanoMicroNone => raw::ms_subseconds_t_NANO_MICRO_NONE,
+        }
+    }
+}
+
 pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
     let mut year = 0;
     let mut yday = 0;
@@ -25,15 +85,19 @@ pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
     Ok(datetime.assume_utc())
 }
 
-/// Converts a nanosecond time into a time string
-pub fn nstime_to_string(nst: c_long) -> MSResult<String> {
-    let show_subseconds = 1;
-    let time_format = raw::ms_timeformat_t_SEEDORDINAL;
+/// Converts a nanosecond time into a time string.
+pub fn nstime_to_string(
+    nst: c_long,
+    time_format: MSTimeFormat,
+    subsecond_format: MSSubSeconds,
+) -> MSResult<String> {
     let time = CString::new("                                     ")
         .unwrap()
         .into_raw();
     unsafe {
-        if raw::ms_nstime2timestr(nst, time, time_format, show_subseconds).is_null() {
+        if raw::ms_nstime2timestr(nst, time, time_format.as_raw(), subsecond_format.as_raw())
+            .is_null()
+        {
             return Err(MSError::from_str("failed to convert nstime to string"));
         }
 
@@ -45,7 +109,7 @@ pub fn time_to_nstime(t: &time::OffsetDateTime) -> i64 {
     t.unix_timestamp()
 }
 
-/// Utility function safely converting a slice of `i8` values into a `String`
+/// Utility function safely converting a slice of `i8` values into a `String`.
 pub(crate) fn i8_to_string(buf: &[i8]) -> String {
     let v: Vec<u8> = buf
         .iter()
