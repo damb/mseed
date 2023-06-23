@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ulong, c_ushort};
+use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ulong, c_ushort, CStr};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -90,6 +90,21 @@ impl MSDataEncoding {
                 "invalid data encoding type: {}",
                 other
             ))),
+        }
+    }
+}
+
+impl fmt::Display for MSDataEncoding {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            let encoding = CStr::from_ptr(raw::ms_encodingstr(
+                (*self as c_char)
+                    .try_into()
+                    .map_err(|_| fmt::Error)
+                    .unwrap(),
+            ))
+            .to_string_lossy();
+            write!(f, "{}", encoding)
         }
     }
 }
@@ -217,6 +232,11 @@ impl MSRecord {
         self.ptr().formatversion
     }
 
+    /// Returns the record level bit flags.
+    pub fn flags(&self) -> c_uchar {
+        self.ptr().flags
+    }
+
     /// Returns the start time of the record (i.e. the time of the first sample).
     pub fn start_time(&self) -> MSResult<time::OffsetDateTime> {
         util::nstime_to_time(self.ptr().starttime)
@@ -311,6 +331,33 @@ impl MSRecord {
 
         Ok(Self(rv))
     }
+
+    /// Returns an object that implements [`Display`] for printing a record with level `detail`.
+    ///
+    /// The `detail` flag controls the level of detail displayed:
+    /// - `0`: print a single summary line
+    /// - `1`: print most header details
+    /// - `>1`: print all header details
+    ///
+    ///  [`Display`]: fmt::Display
+    ///
+    ///  # Examples
+    ///
+    ///  Print most header details (i.e. detail `1`) of miniSEED records from a file:
+    ///
+    ///  ```no_run
+    ///  use mseed::MSReader;
+    ///
+    ///  let mut reader = MSReader::new("path/to/data.mseed").unwrap();
+    ///
+    ///  while let Some(msr) = reader.next() {
+    ///     let msr = msr.unwrap();
+    ///     print!("{}", msr.display(1));
+    ///  }
+    ///  ```
+    pub fn display(&self, detail: i8) -> RecordDisplay<'_> {
+        RecordDisplay { rec: self, detail }
+    }
 }
 
 impl fmt::Display for MSRecord {
@@ -338,6 +385,104 @@ impl Drop for MSRecord {
                 MSControlFlags::empty().bits(),
                 0,
             );
+        }
+    }
+}
+
+/// Helper struct for printing `MSRecord` with [`format!`] and `{}`.
+pub struct RecordDisplay<'a> {
+    rec: &'a MSRecord,
+    detail: i8,
+}
+
+impl fmt::Debug for RecordDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.rec, f)
+    }
+}
+
+impl fmt::Display for RecordDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // XXX(damb): reimplements `msr3_print()`
+        if self.detail > 0 {
+            writeln!(
+                f,
+                "{}, version {}, {} bytes (format: {})",
+                self.rec.sid_lossy(),
+                self.rec.pub_version(),
+                unsafe { (*self.rec.get_raw()).reclen },
+                self.rec.format_version()
+            )?;
+            let start_time = unsafe { (*self.rec.get_raw()).starttime };
+            let start_time = util::nstime_to_string(start_time).unwrap_or("invalid".to_string());
+            writeln!(f, "             start time: {}", start_time)?;
+            writeln!(f, "      number of samples: {}", self.rec.sample_cnt())?;
+            writeln!(f, "       sample rate (Hz): {}", self.rec.sample_rate_hz())?;
+            let flags = self.rec.flags();
+            if self.detail > 1 {
+                writeln!(f, "                  flags: [{:08b}] 8 bits", flags)?;
+
+                if flags & (1 << 0) != 0 {
+                    writeln!(
+                        f,
+                        "                         [Bit 0] Calibration signals present"
+                    )?;
+                }
+                if flags & (1 << 1) != 0 {
+                    writeln!(
+                        f,
+                        "                         [Bit 1] Time tag is questionable"
+                    )?;
+                }
+                if flags & (1 << 2) != 0 {
+                    writeln!(f, "                         [Bit 2] Clock locked")?;
+                }
+                if flags & (1 << 3) != 0 {
+                    writeln!(f, "                         [Bit 3] Undefined bit set")?;
+                }
+                if flags & (1 << 4) != 0 {
+                    writeln!(f, "                         [Bit 4] Undefined bit set")?;
+                }
+                if flags & (1 << 5) != 0 {
+                    writeln!(f, "                         [Bit 5] Undefined bit set")?;
+                }
+                if flags & (1 << 6) != 0 {
+                    writeln!(f, "                         [Bit 6] Undefined bit set")?;
+                }
+                if flags & (1 << 7) != 0 {
+                    writeln!(f, "                         [Bit 7] Undefined bit set")?;
+                }
+            }
+
+            writeln!(f, "                    CRC: {:X}", self.rec.crc())?;
+            let extra_headers = self.rec.extra_headers();
+            let extra_headers_len = if let Some(extra_headers) = extra_headers {
+                extra_headers.len()
+            } else {
+                0
+            };
+            writeln!(f, "    extra header length: {} bytes", extra_headers_len)?;
+            writeln!(
+                f,
+                "    data payload length: {} bytes",
+                self.rec.data_length()
+            )?;
+            let encoding = self.rec.encoding().map_err(|_| fmt::Error)?;
+            let rv = writeln!(
+                f,
+                "       payload encoding: {} (val: {})",
+                encoding, encoding as c_uchar
+            )?;
+
+            if self.detail > 1 {
+                if let Some(_extra_headers) = extra_headers {
+                    // TODO(damb): print extra headers
+                }
+            }
+
+            Ok(rv)
+        } else {
+            writeln!(f, "{}", self.rec)
         }
     }
 }
