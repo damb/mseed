@@ -1,4 +1,5 @@
 use std::ffi::{c_char, c_double, c_float, c_int, c_long, c_uchar, c_uint, c_void, CString};
+use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
 
@@ -436,6 +437,26 @@ impl MSTraceList {
 
         Ok((cnt_records, cnt_samples))
     }
+
+    /// Returns an object that implements [`Display`] for printing a trace list summary.
+    ///
+    /// By default only prints the FDSN source identifier, starttime and endtime for each
+    /// trace. If `detail` is greater than zero the sample rate, number of samples and a total trace
+    /// count is included.
+    /// If `gap` is greater than zero and the previous trace matches both the FDSN source identifier
+    /// and  the sample rate the gap between the endtime of the last trace and the starttime of the
+    /// current trace is included.
+    /// If `version` is greater than zero, the publication version is included.
+    ///
+    ///  [`Display`]: fmt::Display
+    pub fn display(&self, detail: i8, gap: i8, version: i8) -> TraceListDisplay<'_> {
+        TraceListDisplay {
+            mstl: self,
+            detail,
+            gap,
+            version,
+        }
+    }
 }
 
 impl Drop for MSTraceList {
@@ -469,6 +490,144 @@ impl Default for TlPackInfo {
             rec_len: 4096,
             extra_headers: None,
         }
+    }
+}
+
+/// Helper struct for printing `MSTraceList` with [`format!`] and `{}`.
+pub struct TraceListDisplay<'a> {
+    mstl: &'a MSTraceList,
+    detail: i8,
+    gap: i8,
+    version: i8,
+}
+
+impl fmt::Debug for TraceListDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.mstl, f)
+    }
+}
+
+impl fmt::Display for TraceListDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // XXX(damb): reimplements `mstl3_printtracelist()`
+        if self.detail > 0 && self.gap > 0 {
+            writeln!(f, "       SourceID                      Start sample                End sample           Gap  Hz  Samples")?;
+        } else if self.detail <= 0 && self.gap > 0 {
+            writeln!(f, "       SourceID                      Start sample                End sample           Gap")?;
+        } else if self.detail > 0 && self.gap <= 0 {
+            writeln!(f, "       SourceID                      Start sample                End sample           Hz  Samples")?;
+        } else {
+            writeln!(
+                f,
+                "       SourceID                      Start sample                End sample"
+            )?;
+        }
+
+        let mut tid_cnt = 0;
+        let mut tseg_cnt = 0;
+
+        let mut rv = ();
+        for tid in self.mstl.iter() {
+            let sid = tid.sid().map_err(|_| fmt::Error)?;
+            let sid = if self.version > 0 {
+                format!("{}#{}", sid, tid.pub_version())
+            } else {
+                sid
+            };
+            for tseg in tid.iter() {
+                let start_time = unsafe { (*tseg.inner).starttime };
+                let start_time_str = util::nstime_to_string(start_time).map_err(|_| fmt::Error)?;
+
+                let end_time = unsafe { (*tseg.inner).endtime };
+                let end_time_str = util::nstime_to_string(end_time).map_err(|_| fmt::Error)?;
+
+                if self.gap > 0 {
+                    let mut gap: f64 = 0.0;
+                    let mut no_gap = false;
+
+                    let prev_tseg_ptr = unsafe { (*tseg.inner).prev };
+                    if !prev_tseg_ptr.is_null() {
+                        gap = (start_time - unsafe { (*prev_tseg_ptr).endtime }) as f64
+                            / raw::NSTMODULUS as f64;
+                    } else {
+                        no_gap = true;
+                    }
+
+                    // Check that any overlap is not larger than the trace coverage
+                    if gap < 0.0 {
+                        let sample_rate = unsafe { (*tseg.inner).samprate };
+                        let delta = if sample_rate != 0.0 {
+                            1.0 / sample_rate
+                        } else {
+                            0.0
+                        };
+                        if gap * -1.0
+                            > ((end_time - start_time) as f64 / raw::NSTMODULUS as f64 + delta)
+                        {
+                            gap = -1.0 * (end_time - start_time) as f64 / raw::NSTMODULUS as f64
+                                + delta;
+                        }
+                    }
+
+                    let gap_str = if no_gap {
+                        " == ".to_string()
+                    } else if gap >= 86400.0 || gap <= -86400.0 {
+                        format!("{:<3.1}d", gap / 86400.0)
+                    } else if gap >= 3600.0 || gap <= -3600.0 {
+                        format!("{:<3.1}h", gap / 3600.0)
+                    } else if gap == 0.0 {
+                        "-0  ".to_string()
+                    } else {
+                        format!("{:<4.4}", gap)
+                    };
+
+                    if self.detail <= 0 {
+                        rv = writeln!(
+                            f,
+                            "{:<27} {:<28} {:<28} {:<4}",
+                            sid, start_time_str, end_time_str, gap_str
+                        )?;
+                    } else {
+                        rv = writeln!(
+                            f,
+                            "{:<27} {:<28} {:<28} {:<} {:<3.3} {:<}",
+                            sid,
+                            start_time_str,
+                            end_time_str,
+                            gap_str,
+                            tseg.sample_rate_hz(),
+                            tseg.sample_cnt()
+                        )?;
+                    }
+                } else if self.detail > 0 && self.gap <= 0 {
+                    rv = writeln!(
+                        f,
+                        "{:<27} {:<28} {:<28} {:<3.3} {:<}",
+                        sid,
+                        start_time_str,
+                        end_time_str,
+                        tseg.sample_rate_hz(),
+                        tseg.sample_cnt()
+                    )?;
+                } else {
+                    rv = writeln!(f, "{:<27} {:<28} {:<28}", sid, start_time_str, end_time_str)?;
+                }
+
+                tseg_cnt += 1;
+            }
+
+            tid_cnt += 1;
+        }
+
+        if self.detail > 0 {
+            rv = writeln!(
+                f,
+                "Total: {} trace(s) with {} segment(s)",
+                tid_cnt, tseg_cnt
+            )?;
+        }
+
+        Ok(rv)
     }
 }
 
