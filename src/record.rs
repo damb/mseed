@@ -8,6 +8,46 @@ use raw::MS3Record;
 use crate::error::{check, check_nst};
 use crate::{raw, util, MSControlFlags, MSError, MSResult, MSSubSeconds, MSTimeFormat};
 
+/// Structure returned by [`detect()`].
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct RecordDetection {
+    /// Major version of the format detected.
+    pub format_version: c_uchar,
+    /// Size of the record in bytes. `None` if the record length is unknown.
+    pub rec_len: Option<usize>,
+}
+
+/// Detect miniSEED record in buffer.
+///
+/// Determine if the buffer contains a miniSEED data record by
+/// verifying known signatures (fields with known limited values).
+pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
+    let mut format_version: c_uchar = 0;
+    let mut format_version_ptr = (&mut format_version) as *mut _;
+
+    let buf = buf.as_ref();
+    let rec_len = unsafe {
+        check(raw::ms3_detect(
+            buf.as_ptr() as *mut _,
+            buf.len()
+                .try_into()
+                .map_err(|_| MSError::from_str("invalid buffer size"))?,
+            format_version_ptr,
+        ))
+    }?;
+
+    let rec_len = if rec_len == 0 {
+        None
+    } else {
+        Some(rec_len as usize)
+    };
+
+    Ok(RecordDetection {
+        format_version,
+        rec_len,
+    })
+}
+
 /// An enumeration of possible sample types.
 #[repr(i8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]

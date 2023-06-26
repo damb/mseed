@@ -89,7 +89,9 @@ use libmseed_sys as raw;
 pub use crate::error::MSError;
 pub use crate::io::{ConnectionInfo, IntoConnectionInfo, MSFileParam, MSReader, MSWriter};
 pub use crate::pack::{pack, PackInfo};
-pub use crate::record::{MSDataEncoding, MSRecord, MSSampleType, RecordDisplay};
+pub use crate::record::{
+    detect, MSDataEncoding, MSRecord, MSSampleType, RecordDetection, RecordDisplay,
+};
 pub use crate::trace::{
     DataSampleType, MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter,
     TlPackInfo,
