@@ -551,6 +551,68 @@ mod tests {
     use time::format_description::well_known::Iso8601;
 
     #[test]
+    fn test_detect() {
+        let test_data = vec![
+            (
+                "reference-testdata-text.mseed2",
+                RecordDetection {
+                    format_version: 2,
+                    rec_len: Some(512),
+                },
+            ),
+            (
+                "reference-testdata-text.mseed3",
+                RecordDetection {
+                    format_version: 3,
+                    rec_len: Some(294),
+                },
+            ),
+            (
+                "reference-testdata-steim2.mseed2",
+                RecordDetection {
+                    format_version: 2,
+                    rec_len: Some(512),
+                },
+            ),
+            (
+                "reference-testdata-steim2.mseed3",
+                RecordDetection {
+                    format_version: 3,
+                    rec_len: Some(507),
+                },
+            ),
+            (
+                "testdata-detection.record.mseed2",
+                RecordDetection {
+                    format_version: 2,
+                    rec_len: Some(512),
+                },
+            ),
+            (
+                "testdata-no-blockette1000-steim1.mseed2",
+                RecordDetection {
+                    format_version: 2,
+                    rec_len: Some(4096),
+                },
+            ),
+        ];
+
+        for (f, expected) in &test_data {
+            let mut p = test::test_data_base_dir();
+            assert!(p.is_dir());
+            p.push(f);
+
+            let file = File::open(p).unwrap();
+            let mut reader = BufReader::new(file);
+
+            let mut buf = Vec::new();
+            reader.read_to_end(&mut buf).unwrap();
+
+            assert_eq!(&detect(buf).unwrap(), expected);
+        }
+    }
+
+    #[test]
     fn test_parse_signal_mseed3() {
         let mut p = test::test_data_base_dir();
         assert!(p.is_dir());
