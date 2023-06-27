@@ -57,6 +57,11 @@ impl MSTraceId {
         self.ptr().numsegments
     }
 
+    /// Returns whether the trace identifier is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Returns an iterator over the trace identifiers' trace segments.
     pub fn iter(&self) -> MSTraceSegmentIter {
         MSTraceSegmentIter {
@@ -129,9 +134,8 @@ impl<'id> MSTraceSegment<'id> {
             return Err(MSError::from_str("data samples must be unpacked"));
         }
 
-        <T as DataSampleType>::convert_into(self.inner, false)?;
-
         let rv = unsafe {
+            <T as DataSampleType>::convert_into(self.inner, false)?;
             from_raw_parts(
                 self.ptr().datasamples as *mut T,
                 self.ptr().samplecnt as usize,
@@ -186,17 +190,22 @@ impl<'id> MSTraceSegment<'id> {
 }
 
 pub trait DataSampleType {
-    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()>;
+    /// Converts the trace segments' samples
+    ///
+    /// # Safety
+    ///
+    /// `seg` must not be a null pointer.
+    unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()>;
 }
 
 impl DataSampleType for c_uchar {
-    fn convert_into(_seg: *mut MS3TraceSeg, _truncate: bool) -> MSResult<()> {
+    unsafe fn convert_into(_seg: *mut MS3TraceSeg, _truncate: bool) -> MSResult<()> {
         Ok(())
     }
 }
 
 impl DataSampleType for c_int {
-    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+    unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
@@ -213,7 +222,7 @@ impl DataSampleType for c_int {
 }
 
 impl DataSampleType for c_float {
-    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+    unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
@@ -230,7 +239,7 @@ impl DataSampleType for c_float {
 }
 
 impl DataSampleType for c_double {
-    fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
+    unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
@@ -346,9 +355,14 @@ impl MSTraceList {
         Ok(Self { inner: mstl })
     }
 
-    /// Returns the length of the list.
+    /// Returns the length of the trace list.
     pub fn len(&self) -> c_uint {
         self.ptr().numtraceids
+    }
+
+    /// Returns whether the trace list is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Returns a forward iterator over the trace lists' trace identifiers.
@@ -534,7 +548,6 @@ impl fmt::Display for TraceListDisplay<'_> {
         let mut tid_cnt = 0;
         let mut tseg_cnt = 0;
 
-        let mut rv = ();
         for tid in self.mstl.iter() {
             let sid = tid.sid().map_err(|_| fmt::Error)?;
             let sid = if self.version > 0 {
@@ -594,13 +607,13 @@ impl fmt::Display for TraceListDisplay<'_> {
                     };
 
                     if self.detail <= 0 {
-                        rv = writeln!(
+                        writeln!(
                             f,
                             "{:<27} {:<28} {:<28} {:<4}",
                             sid, start_time_str, end_time_str, gap_str
                         )?;
                     } else {
-                        rv = writeln!(
+                        writeln!(
                             f,
                             "{:<27} {:<28} {:<28} {:<} {:<3.3} {:<}",
                             sid,
@@ -612,7 +625,7 @@ impl fmt::Display for TraceListDisplay<'_> {
                         )?;
                     }
                 } else if self.detail > 0 && self.gap <= 0 {
-                    rv = writeln!(
+                    writeln!(
                         f,
                         "{:<27} {:<28} {:<28} {:<3.3} {:<}",
                         sid,
@@ -622,7 +635,7 @@ impl fmt::Display for TraceListDisplay<'_> {
                         tseg.sample_cnt()
                     )?;
                 } else {
-                    rv = writeln!(f, "{:<27} {:<28} {:<28}", sid, start_time_str, end_time_str)?;
+                    writeln!(f, "{:<27} {:<28} {:<28}", sid, start_time_str, end_time_str)?;
                 }
 
                 tseg_cnt += 1;
@@ -632,14 +645,14 @@ impl fmt::Display for TraceListDisplay<'_> {
         }
 
         if self.detail > 0 {
-            rv = writeln!(
+            writeln!(
                 f,
                 "Total: {} trace(s) with {} segment(s)",
                 tid_cnt, tseg_cnt
             )?;
         }
 
-        Ok(rv)
+        Ok(())
     }
 }
 

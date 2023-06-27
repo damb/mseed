@@ -281,7 +281,7 @@ extern "C" fn record_handler<W: Write>(rec: *mut c_char, rec_len: c_int, out: *m
     let writer: &mut W = unsafe { &mut *(out as *mut W) };
     let buf = unsafe { from_raw_parts(rec as *mut u8, rec_len.try_into().unwrap()) };
 
-    writer.write(buf).unwrap();
+    writer.write_all(buf).unwrap();
 }
 
 #[cfg(test)]

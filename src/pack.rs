@@ -215,9 +215,8 @@ where
         (*msr).starttime = util::time_to_nstime(start_time);
         (*msr).pubversion = info.pub_version;
         (*msr).formatversion = info.format_version;
-        (*msr).numsamples = c_long::try_from(data_samples.len()).map_err(|e| {
-            MSError::from_str(&format!("invalid data sample length ({})", e.to_string()))
-        })?;
+        (*msr).numsamples = c_long::try_from(data_samples.len())
+            .map_err(|e| MSError::from_str(&format!("invalid data sample length ({})", e)))?;
         (*msr).datasamples = data_samples.as_mut_ptr() as *mut _ as *mut c_void;
         (*msr).datasize = mem::size_of_val(data_samples);
         (*msr).extralength = 0;
@@ -227,10 +226,8 @@ where
     if let Some(extra_headers) = &info.extra_headers {
         let cloned = extra_headers.clone();
         unsafe {
-            (*msr).extralength =
-                c_ushort::try_from(cloned.as_bytes_with_nul().len()).map_err(|e| {
-                    MSError::from_str(&format!("invalid extra header length ({})", e.to_string()))
-                })?;
+            (*msr).extralength = c_ushort::try_from(cloned.as_bytes_with_nul().len())
+                .map_err(|e| MSError::from_str(&format!("invalid extra header length ({})", e)))?;
             (*msr).extra = cloned.into_raw();
         }
     }
