@@ -2,6 +2,9 @@ use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ulong, c_ushort, CSt
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
+use std::str;
+
+use serde_json::Value;
 
 use raw::MS3Record;
 
@@ -529,23 +532,35 @@ impl fmt::Display for RecordDisplay<'_> {
                 self.rec.data_length()
             )?;
             let encoding = self.rec.encoding().map_err(|_| fmt::Error)?;
-            let rv = writeln!(
+            writeln!(
                 f,
                 "       payload encoding: {} (val: {})",
                 encoding, encoding as c_uchar
             )?;
 
             if self.detail > 1 {
-                if let Some(_extra_headers) = extra_headers {
-                    // TODO(damb): print extra headers
+                if let Some(extra_headers) = extra_headers {
+                    writeln!(f, "       extra headers:")?;
+                    let json_str = as_json_pretty(extra_headers).map_err(|_| fmt::Error)?;
+                    for line in json_str.lines() {
+                        writeln!(f, "                {}", line)?;
+                    }
                 }
             }
 
-            Ok(rv)
+            Ok(())
         } else {
             writeln!(f, "{}", self.rec)
         }
     }
+}
+
+fn as_json_pretty(slice: &[u8]) -> MSResult<String> {
+    str::from_utf8(slice)
+        .ok()
+        .and_then(|json_str| serde_json::from_str(json_str).ok())
+        .and_then(|v: Value| serde_json::to_string_pretty(&v).ok())
+        .ok_or_else(|| MSError::from_str("failed to pretty format JSON"))
 }
 
 #[cfg(test)]
