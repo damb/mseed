@@ -23,7 +23,7 @@ pub struct RecordDetection {
 /// verifying known signatures (fields with known limited values).
 pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
     let mut format_version: c_uchar = 0;
-    let mut format_version_ptr = (&mut format_version) as *mut _;
+    let format_version_ptr = (&mut format_version) as *mut _;
 
     let buf = buf.as_ref();
     let rec_len = unsafe {
