@@ -42,4 +42,3 @@ fn main() {
     // Print summary
     print!("{}", mstl.display(MSTimeFormat::IsoMonthDay, 1, 1, 0));
 }
-
