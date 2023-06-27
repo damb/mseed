@@ -1,4 +1,6 @@
-use std::ffi::{c_char, c_double, c_float, c_int, c_long, c_uchar, c_uint, c_void, CString};
+use std::ffi::{
+    c_char, c_double, c_float, c_int, c_long, c_uchar, c_uint, c_ulong, c_void, CString,
+};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -344,7 +346,7 @@ impl MSTraceList {
         self.inner
     }
 
-    /// Creates a new [`MSTraceList`] container
+    /// Creates a new [`MSTraceList`] container.
     pub fn new() -> MSResult<Self> {
         let mstl: *mut MS3TraceList = ptr::null_mut();
         let mstl = unsafe { raw::mstl3_init(mstl) };
@@ -353,6 +355,26 @@ impl MSTraceList {
         }
 
         Ok(Self { inner: mstl })
+    }
+
+    /// Creates a new [`MSTraceList`] from a buffer.
+    pub fn from_buffer(buf: &mut [u8], flags: MSControlFlags) -> MSResult<Self> {
+        let mut rv = Self::new()?;
+
+        unsafe {
+            let buf = &mut *(buf as *mut [u8] as *mut [c_char]);
+            check(raw::mstl3_readbuffer(
+                (&mut rv.get_raw_mut()) as *mut *mut _,
+                buf.as_mut().as_mut_ptr(),
+                buf.as_mut().len() as c_ulong,
+                0,
+                flags.bits(),
+                ptr::null_mut(),
+                0,
+            ))
+        }?;
+
+        Ok(rv)
     }
 
     /// Returns the length of the trace list.
