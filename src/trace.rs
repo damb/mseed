@@ -302,6 +302,29 @@ impl<'id> DoubleEndedIterator for MSTraceSegmentIter<'id> {
 
 /// A container for [`MSTraceId`]s.
 ///
+/// # Examples
+///
+/// Creating a `MSTraceList` from a file may be implemented as follows:
+///
+/// ```no_run
+/// use std::fs::File;
+///
+/// use std::io::{Read, BufReader};
+///
+/// use mseed::{MSControlFlags, MSTraceList};
+///
+/// let file = File::open("path/to/data.mseed").unwrap();
+/// let mut reader = BufReader::new(file);
+///
+/// let mut buf = Vec::new();
+/// // read content of `data.mseed` into `buf`
+/// reader.read_to_end(&mut buf).unwrap();
+///
+/// let mstl = MSTraceList::from_buffer(&mut buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
+/// ```
+///
+/// If controlling the records to be inserted is desired, using [`MSReader`] is required:
+///
 /// ```no_run
 /// use std::fs::File;
 ///
@@ -320,6 +343,7 @@ impl<'id> DoubleEndedIterator for MSTraceSegmentIter<'id> {
 ///     }
 /// }
 ///
+/// // do something with `mstl`
 /// let mstl_iter = mstl.iter();
 /// for tid in mstl_iter {
 ///     let tid_iter = tid.iter();
@@ -328,6 +352,7 @@ impl<'id> DoubleEndedIterator for MSTraceSegmentIter<'id> {
 ///     }
 /// }
 /// ```
+/// [`MSReader`]: crate::MSReader
 #[derive(Debug)]
 pub struct MSTraceList {
     inner: *mut MS3TraceList,
