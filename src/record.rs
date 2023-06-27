@@ -421,6 +421,17 @@ impl fmt::Display for MSRecord {
     }
 }
 
+impl AsRef<[u8]> for MSRecord {
+    fn as_ref(&self) -> &[u8] {
+        unsafe {
+            from_raw_parts(
+                self.ptr().record as *mut c_uchar,
+                self.ptr().reclen as usize,
+            )
+        }
+    }
+}
+
 impl Drop for MSRecord {
     fn drop(&mut self) {
         unsafe {
