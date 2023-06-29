@@ -172,3 +172,65 @@ impl fmt::Display for NetStaLocCha {
         write!(f, "{}", sid)
     }
 }
+
+/// Converts an extended channel identifier to a SEED 2.x channel identifier.
+///
+/// See also [`seedchan2xchan`].
+pub fn xchan2seedchan(xchan: &str) -> MSResult<String> {
+    let xcha = CString::new(xchan)
+        .map_err(|_| MSError::from_str(&format!("failed to convert xchan: {}", xchan)))?;
+
+    let cha = CString::new(Vec::with_capacity(4))
+        .map_err(|_| MSError::from_str(&format!("failed to convert xchan: {}", xchan)))?
+        .into_raw();
+    let cha = unsafe {
+        check(raw::ms_xchan2seedchan(cha, xcha.as_ptr() as *const _))?;
+        CString::from_raw(cha)
+    };
+
+    let rv = cha
+        .into_string()
+        .map_err(|_| MSError::from_str(&format!("failed to convert xchan: {}", xchan)))?;
+
+    Ok(rv)
+}
+
+/// Converts a SEED 2.x channel identifier to an extended channel identifier.
+///
+/// See also [`xchan2seedchan`].
+pub fn seedchan2xchan(seed_chan: &str) -> MSResult<String> {
+    let cha = CString::new(seed_chan)
+        .map_err(|_| MSError::from_str(&format!("failed to convert seed_chan: {}", seed_chan)))?;
+
+    let xcha = CString::new(Vec::with_capacity(6))
+        .map_err(|_| MSError::from_str(&format!("failed to convert seed_chan: {}", seed_chan)))?
+        .into_raw();
+    let xcha = unsafe {
+        check(raw::ms_seedchan2xchan(xcha, cha.as_ptr() as *const _))?;
+        CString::from_raw(xcha)
+    };
+
+    let rv = xcha
+        .into_string()
+        .map_err(|_| MSError::from_str(&format!("failed to convert seed_chan: {}", seed_chan)))?;
+
+    Ok(rv)
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_xchan2seedchan() {
+        assert_eq!(xchan2seedchan("B_H_Z").unwrap(), "BHZ");
+    }
+
+    #[test]
+    fn test_seedchan2xchan() {
+        assert_eq!(seedchan2xchan("BHZ").unwrap(), "B_H_Z");
+    }
+}
