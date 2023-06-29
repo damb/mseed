@@ -123,14 +123,18 @@ pub(crate) fn i8_to_string(buf: &[i8]) -> String {
 /// A structure representing network, station, location, and channel identifiers.
 #[derive(Debug, Clone)]
 pub(crate) struct NetStaLocCha {
+    /// Network identifier.
     pub net: String,
+    /// Station identifier.
     pub sta: String,
+    /// Location identifier.
     pub loc: String,
+    /// Channel identifier stored as SEED 2.x channel identifier.
     pub cha: String,
 }
 
 impl NetStaLocCha {
-    /// Creates a new `NSLC` structure from a stream identifier buffer slice.
+    /// Creates a new `NSLC` structure from a FDSN source identifier buffer slice.
     pub fn from_sid(sid: &[c_char]) -> MSResult<Self> {
         let s0 = "           ";
         let s1 = "                               ";
