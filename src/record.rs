@@ -408,7 +408,7 @@ impl fmt::Display for MSRecord {
         let v = self.ptr();
         write!(
             f,
-            "{}, {}, {}, {} samples, {} Hz, {:?}",
+            "{}, {}, {}, {} samples, {} Hz, {}",
             self.sid_lossy(),
             v.pubversion,
             v.reclen,
