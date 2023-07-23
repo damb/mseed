@@ -9,6 +9,7 @@ use crate::{
 use raw::MS3Record;
 
 /// Struct providing miniSEED record packing information.
+#[derive(Debug, Clone)]
 pub struct PackInfo {
     /// FDSN source identifier.
     sid: CString,
