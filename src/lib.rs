@@ -28,13 +28,13 @@
 //! let mut writer = MSWriter::new(out_file);
 //!
 //! while let Some(msr) = reader.next() {
-//!     let mut msr = msr.unwrap();
+//!     let msr = msr.unwrap();
 //!
 //!     if msr.network().unwrap() == "NET" && msr.station().unwrap() == "STA" {
 //!         // do something with msr
 //!
 //!         writer
-//!             .write_record(&mut msr, MSControlFlags::MSF_FLUSHDATA)
+//!             .write_record(&msr, MSControlFlags::MSF_FLUSHDATA)
 //!             .unwrap();
 //!     }
 //! }
@@ -55,7 +55,7 @@
 //!
 //! use mseed::{self, MSControlFlags, PackInfo};
 //!
-//! let mut pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
+//! let pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
 //!
 //! let file = OpenOptions::new()
 //!     .create(true)

@@ -233,11 +233,11 @@ impl<W: Write> MSWriter<W> {
     ///  case of miniSEED 2, unfilled.
     ///  If `flags` has [`MSControlFlags::MSF_PACKVER2`] set `msr` is packed as miniSEED v2
     ///  regardless of msr's [`MSRecord::format_version`].
-    pub fn write_record(&mut self, msr: &mut MSRecord, flags: MSControlFlags) -> MSResult<c_long> {
+    pub fn write_record(&mut self, msr: &MSRecord, flags: MSControlFlags) -> MSResult<c_long> {
         // XXX(damb): reimplementation of [`raw::msr3_writemseed`]
         unsafe {
             check(raw::msr3_pack(
-                msr.get_raw_mut(),
+                msr.get_raw(),
                 Some(record_handler::<W>),
                 (&mut self.writer) as *mut _ as *mut c_void,
                 ptr::null_mut(),

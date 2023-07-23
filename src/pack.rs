@@ -158,7 +158,7 @@ where
 ///
 /// use mseed::{self, MSControlFlags, PackInfo};
 ///
-/// let mut pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
+/// let pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
 ///
 /// let file = OpenOptions::new()
 ///     .create(true)
