@@ -6,6 +6,16 @@
 
 Rust bindings for [libmseed](https://github.com/EarthScope/libmseed) - The miniSEED data format library.
 
+## Usage
+
+mseed uses [Cargo](https://crates.io), so add it with `cargo add mseed` or
+modify `Cargo.toml`:
+
+```toml
+[dependencies]
+mseed = "0.3"
+```
+
 ## Documentation
 
 For the crate's documentation please refer to
