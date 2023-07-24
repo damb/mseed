@@ -9,7 +9,7 @@ Rust bindings for [libmseed](https://github.com/EarthScope/libmseed) - The miniS
 ## Documentation
 
 For the crate's documentation please refer to
-[docs.rs/mseed/](https://docs.rs/mseed/).
+[docs.rs/mseed](https://docs.rs/mseed/).
 
 ## Examples
 
