@@ -22,10 +22,12 @@ impl MSTraceId {
         unsafe { *self.0 }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn get_raw(&self) -> *const MS3TraceID {
         self.0
     }
 
+    #[allow(dead_code)]
     pub(crate) unsafe fn get_raw_mut(&mut self) -> *mut MS3TraceID {
         self.0
     }
@@ -97,7 +99,7 @@ impl Iterator for MSTraceIdIter {
 /// A container for a continuous trace segment.
 #[derive(Debug)]
 pub struct MSTraceSegment<'id> {
-    trace_id: &'id MSTraceId,
+    _trace_id: &'id MSTraceId,
 
     inner: *mut MS3TraceSeg,
 }
@@ -275,7 +277,7 @@ impl<'id> Iterator for MSTraceSegmentIter<'id> {
         }
 
         let rv = Some(MSTraceSegment {
-            trace_id: self.trace_id,
+            _trace_id: self.trace_id,
             inner: self.next,
         });
         self.prev = self.next;
@@ -291,7 +293,7 @@ impl<'id> DoubleEndedIterator for MSTraceSegmentIter<'id> {
         }
 
         let rv = Some(MSTraceSegment {
-            trace_id: self.trace_id,
+            _trace_id: self.trace_id,
             inner: self.prev,
         });
         self.next = self.prev;
@@ -363,10 +365,12 @@ impl MSTraceList {
         unsafe { *self.inner }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn get_raw(&self) -> *const MS3TraceList {
         self.inner
     }
 
+    #[allow(dead_code)]
     pub(crate) unsafe fn get_raw_mut(&mut self) -> *mut MS3TraceList {
         self.inner
     }

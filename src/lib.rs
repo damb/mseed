@@ -102,9 +102,11 @@ mod error;
 mod io;
 mod pack;
 mod record;
-mod test;
 mod trace;
 mod util;
+
+#[cfg(test)]
+mod test;
 
 /// A specialized library `Result` type.
 pub type MSResult<T> = std::result::Result<T, MSError>;

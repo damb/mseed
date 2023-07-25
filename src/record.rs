@@ -165,6 +165,7 @@ impl MSRecord {
         self.0
     }
 
+    #[allow(dead_code)]
     pub(crate) unsafe fn get_raw_mut(&mut self) -> *mut MS3Record {
         self.0
     }
