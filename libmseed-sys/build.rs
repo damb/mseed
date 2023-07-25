@@ -6,25 +6,24 @@ use std::path::PathBuf;
 use bindgen::CargoCallbacks;
 
 const LIB_DIR: &str = "vendor";
-const SOURCE_FILES: [&str; 18] = [
+const SOURCE_FILES: [&str; 17] = [
+    "crc32c.c",
+    "extraheaders.c",
     "fileutils.c",
     "genutils.c",
-    "gswap.c",
-    "msio.c",
+    "gmtime64.c",
+    "logging.c",
     "lookup.c",
-    "yyjson.c",
+    "msio.c",
     "msrutils.c",
-    "extraheaders.c",
     "pack.c",
     "packdata.c",
-    "tracelist.c",
-    "gmtime64.c",
-    "crc32c.c",
     "parseutils.c",
+    "selection.c",
+    "tracelist.c",
     "unpack.c",
     "unpackdata.c",
-    "selection.c",
-    "logging.c",
+    "yyjson.c",
 ];
 
 fn main() {
