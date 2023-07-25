@@ -88,7 +88,7 @@ use libmseed_sys as raw;
 
 pub use crate::error::MSError;
 pub use crate::io::{ConnectionInfo, IntoConnectionInfo, MSFileParam, MSReader, MSWriter};
-pub use crate::pack::{pack, PackInfo};
+pub use crate::pack::{pack, pack_header2, pack_header3, pack_record, repack_mseed3, PackInfo};
 pub use crate::record::{
     detect, MSDataEncoding, MSRecord, MSSampleType, RecordDetection, RecordDisplay,
 };
