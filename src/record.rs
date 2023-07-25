@@ -22,8 +22,8 @@ pub struct RecordDetection {
 
 /// Detect miniSEED record in buffer.
 ///
-/// Determine if the buffer contains a miniSEED data record by
-/// verifying known signatures (fields with known limited values).
+/// Determine if the buffer contains a miniSEED data record by verifying known signatures (fields
+/// with known limited values).
 pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
     let mut format_version: c_uchar = 0;
     let format_version_ptr = (&mut format_version) as *mut _;
