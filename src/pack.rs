@@ -51,7 +51,8 @@ impl Default for TlPackInfo {
 /// - If `flags` has [`MSControlFlags::MSF_MAINTAINMSTL`] packed data is not removed from the
 /// trace lists' internal buffers.
 ///
-/// See also [`pack()`] for packing raw data samples.
+/// See also [`pack_record()`] for packing record data and [`pack_raw()`] for packing raw data
+/// samples.
 pub fn pack_trace_list<F>(
     mstl: &mut MSTraceList,
     mut record_handler: F,
