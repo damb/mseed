@@ -602,12 +602,12 @@ fn main() {
     match args.encoding {
         DataEncoding::Text => {
             pack_info.encoding = MSDataEncoding::Text;
-            mseed::pack(&mut text, &start_time, record_handler, &pack_info, flags)
+            mseed::pack_raw(&mut text, &start_time, record_handler, &pack_info, flags)
         }
         DataEncoding::Integer16 => {
             pack_info.encoding = MSDataEncoding::Integer16;
             // The first 220 samples can be represented in 16-bits
-            mseed::pack(
+            mseed::pack_raw(
                 &mut sine_data_i32[..220],
                 &start_time,
                 record_handler,
@@ -617,7 +617,7 @@ fn main() {
         }
         DataEncoding::Integer32 => {
             pack_info.encoding = MSDataEncoding::Integer32;
-            mseed::pack(
+            mseed::pack_raw(
                 &mut sine_data_i32,
                 &start_time,
                 record_handler,
@@ -627,7 +627,7 @@ fn main() {
         }
         DataEncoding::Float32 => {
             pack_info.encoding = MSDataEncoding::Float32;
-            mseed::pack(
+            mseed::pack_raw(
                 &mut sine_data_f32,
                 &start_time,
                 record_handler,
@@ -637,7 +637,7 @@ fn main() {
         }
         DataEncoding::Float64 => {
             pack_info.encoding = MSDataEncoding::Float64;
-            mseed::pack(
+            mseed::pack_raw(
                 &mut sine_data_f64,
                 &start_time,
                 record_handler,
@@ -647,7 +647,7 @@ fn main() {
         }
         DataEncoding::Steim1 => {
             pack_info.encoding = MSDataEncoding::Steim1;
-            mseed::pack(
+            mseed::pack_raw(
                 &mut sine_data_i32,
                 &start_time,
                 record_handler,
@@ -658,7 +658,7 @@ fn main() {
         DataEncoding::Steim2 => {
             pack_info.encoding = MSDataEncoding::Steim2;
             // Steim-2 can represent all but the last difference
-            mseed::pack(
+            mseed::pack_raw(
                 &mut sine_data_i32[..499],
                 &start_time,
                 record_handler,

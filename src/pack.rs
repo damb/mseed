@@ -170,7 +170,7 @@ where
     Ok(sid)
 }
 
-/// Low level function that packs `data_samples` into miniSEED records.
+/// Low level function that packs raw data samples into miniSEED records.
 ///
 /// `start_time` is the time of the first data sample. Buffers containing the packed miniSEED
 /// records are passed to the `record_handler` closure. Returns on success a tuple where the first
@@ -214,7 +214,7 @@ where
 /// let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
 ///
 /// let mut payload: Vec<u8> = "Hello, miniSEED!".bytes().collect();
-/// let (cnt_records, cnt_samples) = mseed::pack(
+/// let (cnt_records, cnt_samples) = mseed::pack_raw(
 ///     &mut payload,
 ///     &start_time,
 ///     record_handler,
@@ -257,7 +257,7 @@ where
 ///
 /// let mut data_samples: Vec<i32> = (1..100).collect();
 /// let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
-/// mseed::pack(
+/// mseed::pack_raw(
 ///     &mut data_samples,
 ///     &start_time,
 ///     record_handler,
@@ -266,7 +266,7 @@ where
 /// )
 /// .unwrap();
 /// ```
-pub fn pack<T, F>(
+pub fn pack_raw<T, F>(
     data_samples: &mut [T],
     start_time: &time::OffsetDateTime,
     mut record_handler: F,
