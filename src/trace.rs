@@ -320,7 +320,7 @@ impl<'id> DoubleEndedIterator for MSTraceSegmentIter<'id> {
 /// // read content of `data.mseed` into `buf`
 /// reader.read_to_end(&mut buf).unwrap();
 ///
-/// let mstl = MSTraceList::from_buffer(&mut buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
+/// let mstl = MSTraceList::from_buffer(&buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
 /// ```
 ///
 /// If controlling the records to be inserted is desired, using [`MSReader`] is required:
@@ -385,15 +385,15 @@ impl MSTraceList {
     }
 
     /// Creates a new [`MSTraceList`] from a buffer.
-    pub fn from_buffer(buf: &mut [u8], flags: MSControlFlags) -> MSResult<Self> {
+    pub fn from_buffer(buf: &[u8], flags: MSControlFlags) -> MSResult<Self> {
         let mut rv = Self::new()?;
 
         unsafe {
-            let buf = &mut *(buf as *mut [u8] as *mut [c_char]);
+            let buf = &*(buf as *const [_] as *const [_]);
             check(raw::mstl3_readbuffer(
                 (&mut rv.get_raw_mut()) as *mut *mut _,
-                buf.as_mut().as_mut_ptr(),
-                buf.as_mut().len() as c_ulong,
+                buf.as_ptr(),
+                buf.len() as c_ulong,
                 0,
                 flags.bits(),
                 ptr::null_mut(),
