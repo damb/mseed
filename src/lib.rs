@@ -97,6 +97,7 @@ pub use crate::record::{
 };
 pub use crate::trace::{
     DataSampleType, MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter,
+    TraceListDisplay,
 };
 pub use crate::util::{seedchan2xchan, xchan2seedchan, MSSubSeconds, MSTimeFormat};
 
