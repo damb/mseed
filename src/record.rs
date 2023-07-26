@@ -31,10 +31,8 @@ pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
     let buf = buf.as_ref();
     let rec_len = unsafe {
         check(raw::ms3_detect(
-            buf.as_ptr() as *mut _,
-            buf.len()
-                .try_into()
-                .map_err(|_| MSError::from_str("invalid buffer size"))?,
+            buf.as_ptr() as *const _,
+            buf.len() as c_ulong,
             format_version_ptr,
         ))
     }?;
@@ -171,7 +169,7 @@ impl MSRecord {
     }
 
     /// Parses a `MSRecord` from a slice of bytes.
-    pub fn parse(buf: &mut [u8], flags: MSControlFlags) -> MSResult<Self> {
+    pub fn parse(buf: &[u8], flags: MSControlFlags) -> MSResult<Self> {
         let msr: *mut MS3Record = ptr::null_mut();
         let mut msr = unsafe { raw::msr3_init(msr) };
         if msr.is_null() {
@@ -179,10 +177,10 @@ impl MSRecord {
         }
 
         unsafe {
-            let buf = &mut *(buf as *mut [u8] as *mut [c_char]);
+            let buf = &*(buf as *const [_] as *const [c_char]);
             check(raw::msr3_parse(
-                buf.as_mut().as_mut_ptr(),
-                buf.as_mut().len() as c_ulong,
+                buf.as_ptr(),
+                buf.len() as c_ulong,
                 (&mut msr) as *mut *mut MS3Record,
                 flags.bits(),
                 0,
@@ -337,7 +335,7 @@ impl MSRecord {
     }
 
     /// Returns the (unpacked) data samples of the record if available.
-    pub fn data_samples<T>(&mut self) -> Option<&[T]> {
+    pub fn data_samples<T>(&self) -> Option<&[T]> {
         if self.ptr().datasamples.is_null() {
             return None;
         }
@@ -651,7 +649,7 @@ mod tests {
         let mut buf: Vec<u8> = vec![];
         reader.read_to_end(&mut buf).unwrap();
 
-        let mut msr = MSRecord::parse(&mut buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
+        let msr = MSRecord::parse(&buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
         assert_eq!(msr.network().unwrap(), "IU");
         assert_eq!(msr.station().unwrap(), "COLA");
         assert_eq!(msr.location().unwrap(), "00");
@@ -716,7 +714,7 @@ mod tests {
         let mut buf: Vec<u8> = vec![];
         reader.read_to_end(&mut buf).unwrap();
 
-        let mut msr = MSRecord::parse(&mut buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
+        let msr = MSRecord::parse(&buf, MSControlFlags::MSF_UNPACKDATA).unwrap();
         assert_eq!(msr.network().unwrap(), "IU");
         assert_eq!(msr.station().unwrap(), "COLA");
         assert_eq!(msr.location().unwrap(), "00");

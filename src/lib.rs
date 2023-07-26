@@ -28,13 +28,13 @@
 //! let mut writer = MSWriter::new(out_file);
 //!
 //! while let Some(msr) = reader.next() {
-//!     let mut msr = msr.unwrap();
+//!     let msr = msr.unwrap();
 //!
 //!     if msr.network().unwrap() == "NET" && msr.station().unwrap() == "STA" {
 //!         // do something with msr
 //!
 //!         writer
-//!             .write_record(&mut msr, MSControlFlags::MSF_FLUSHDATA)
+//!             .write_record(&msr, MSControlFlags::MSF_FLUSHDATA)
 //!             .unwrap();
 //!     }
 //! }
@@ -43,7 +43,7 @@
 //!
 //! ## Low-level miniSEED record I/O
 //!
-//! Creating miniSEED records from raw data samples is possible using the low-level [`pack()`]
+//! Creating miniSEED records from raw data samples is possible using the low-level [`pack_raw()`]
 //! function:
 //!
 //! ```no_run
@@ -55,7 +55,7 @@
 //!
 //! use mseed::{self, MSControlFlags, PackInfo};
 //!
-//! let mut pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
+//! let pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
 //!
 //! let file = OpenOptions::new()
 //!     .create(true)
@@ -70,7 +70,7 @@
 //!
 //! let mut data_samples: Vec<i32> = (1..100).collect();
 //! let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
-//! mseed::pack(
+//! mseed::pack_raw(
 //!     &mut data_samples,
 //!     &start_time,
 //!     record_handler,
@@ -88,13 +88,15 @@ use libmseed_sys as raw;
 
 pub use crate::error::MSError;
 pub use crate::io::{ConnectionInfo, IntoConnectionInfo, MSFileParam, MSReader, MSWriter};
-pub use crate::pack::{pack, PackInfo};
+pub use crate::pack::{
+    pack_header2, pack_header3, pack_raw, pack_record, pack_trace_list, repack_mseed3, PackInfo,
+    TlPackInfo,
+};
 pub use crate::record::{
     detect, MSDataEncoding, MSRecord, MSSampleType, RecordDetection, RecordDisplay,
 };
 pub use crate::trace::{
     DataSampleType, MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter,
-    TlPackInfo,
 };
 pub use crate::util::{seedchan2xchan, xchan2seedchan, MSSubSeconds, MSTimeFormat};
 

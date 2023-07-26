@@ -1,14 +1,99 @@
-use std::ffi::{c_char, c_double, c_int, c_long, c_uchar, c_ushort, c_void, CString};
+use std::ffi::{c_char, c_double, c_int, c_long, c_uchar, c_uint, c_ushort, c_void, CString};
 use std::mem;
 use std::ptr;
 use std::slice;
 
 use crate::{
-    error::check, raw, util, MSControlFlags, MSDataEncoding, MSError, MSResult, MSSampleType,
+    error::check, raw, util, MSControlFlags, MSDataEncoding, MSError, MSRecord, MSResult,
+    MSSampleType, MSTraceList,
 };
 use raw::MS3Record;
 
+/// Struct aggregating [`MSTraceList`] packing information.
+///
+/// See also [`PackInfo`].
+#[derive(Debug, Clone)]
+pub struct TlPackInfo {
+    // /// The miniSEED format version.
+    // pub format_version: c_uchar,
+    /// Data encoding.
+    pub encoding: MSDataEncoding,
+    /// Record length used for encoding.
+    pub rec_len: c_int,
+    /// Extra headers.
+    ///
+    /// If not `None` it is expected to contain extra headers, i.e. a string containing (compact)
+    /// JSON, that will be added to each output record.
+    pub extra_headers: Option<CString>,
+}
+
+impl Default for TlPackInfo {
+    fn default() -> Self {
+        Self {
+            encoding: MSDataEncoding::Steim2,
+            rec_len: 4096,
+            extra_headers: None,
+        }
+    }
+}
+
+/// Packs the trace lists' data into miniSEED records.
+///
+/// Buffers containing the packed miniSEED records are passed to the `record_handler` closure.
+/// Returns on success a tuple where the first value is the number of totally packed records
+/// and the second value is the number of totally packed samples.
+///
+/// Packing is controlled by the following `flags`:
+/// - If `flags` has [`MSControlFlags::MSF_FLUSHDATA`] set, all of the trace lists' data will be
+/// packed into miniSEED records even though the last one will probably be smaller than
+/// requested or, in the case of miniSEED v2, unfilled.
+/// - If `flags` has [`MSControlFlags::MSF_PACKVER2`] set records are packed as miniSEED v2.
+/// - If `flags` has [`MSControlFlags::MSF_MAINTAINMSTL`] packed data is not removed from the
+/// trace lists' internal buffers.
+///
+/// See also [`pack()`] for packing raw data samples.
+pub fn pack_trace_list<F>(
+    mstl: &mut MSTraceList,
+    mut record_handler: F,
+    info: &TlPackInfo,
+    flags: MSControlFlags,
+) -> MSResult<(usize, usize)>
+where
+    F: FnMut(&[u8]),
+{
+    let mut extra_ptr = ptr::null_mut();
+    if let Some(extra_headers) = &info.extra_headers {
+        let cloned = extra_headers.clone();
+        extra_ptr = cloned.into_raw();
+    }
+
+    let mut cnt_samples: c_long = 0;
+    let cnt_samples_ptr = &mut cnt_samples as *mut _;
+    let cnt_records = unsafe {
+        check(raw::mstl3_pack(
+            mstl.get_raw_mut(),
+            Some(rh_wrapper::<F>),
+            (&mut record_handler) as *mut _ as *mut c_void,
+            info.rec_len,
+            info.encoding as c_char,
+            cnt_samples_ptr,
+            flags.bits(),
+            0,
+            extra_ptr,
+        ))?
+    };
+
+    if !extra_ptr.is_null() {
+        unsafe {
+            let _ = CString::from_raw(extra_ptr);
+        }
+    }
+
+    Ok((cnt_records as usize, cnt_samples as usize))
+}
+
 /// Struct providing miniSEED record packing information.
+#[derive(Debug, Clone)]
 pub struct PackInfo {
     /// FDSN source identifier.
     sid: CString,
@@ -85,7 +170,7 @@ where
     Ok(sid)
 }
 
-/// Low level function that packs `data_samples` into miniSEED records.
+/// Low level function that packs raw data samples into miniSEED records.
 ///
 /// `start_time` is the time of the first data sample. Buffers containing the packed miniSEED
 /// records are passed to the `record_handler` closure. Returns on success a tuple where the first
@@ -129,7 +214,7 @@ where
 /// let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
 ///
 /// let mut payload: Vec<u8> = "Hello, miniSEED!".bytes().collect();
-/// let (cnt_records, cnt_samples) = mseed::pack(
+/// let (cnt_records, cnt_samples) = mseed::pack_raw(
 ///     &mut payload,
 ///     &start_time,
 ///     record_handler,
@@ -157,7 +242,7 @@ where
 ///
 /// use mseed::{self, MSControlFlags, PackInfo};
 ///
-/// let mut pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
+/// let pack_info = PackInfo::new("FDSN:XX_TEST__X_Y_Z").unwrap();
 ///
 /// let file = OpenOptions::new()
 ///     .create(true)
@@ -172,7 +257,7 @@ where
 ///
 /// let mut data_samples: Vec<i32> = (1..100).collect();
 /// let start_time = OffsetDateTime::parse("2012-01-01T00:00:00Z", &Iso8601::DEFAULT).unwrap();
-/// mseed::pack(
+/// mseed::pack_raw(
 ///     &mut data_samples,
 ///     &start_time,
 ///     record_handler,
@@ -181,13 +266,13 @@ where
 /// )
 /// .unwrap();
 /// ```
-pub fn pack<T, F>(
+pub fn pack_raw<T, F>(
     data_samples: &mut [T],
     start_time: &time::OffsetDateTime,
     mut record_handler: F,
     info: &PackInfo,
     flags: MSControlFlags,
-) -> MSResult<(c_long, c_long)>
+) -> MSResult<(usize, usize)>
 where
     F: FnMut(&[u8]),
 {
@@ -259,10 +344,10 @@ where
         raw::msr3_free((&mut msr) as *mut *mut _);
     }
 
-    Ok((cnt_records.into(), cnt_samples))
+    Ok((cnt_records as usize, cnt_samples as usize))
 }
 
-pub(crate) extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
+extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
 where
     F: FnMut(&[u8]),
 {
@@ -270,4 +355,91 @@ where
     let callback = unsafe { &mut *(out as *mut F) };
 
     callback(rec);
+}
+
+/// Pack record data into miniSEED records.
+///
+/// Buffers containing the packed miniSEED records are passed to the `record_handler` closure.
+/// Returns on success a tuple where the first value is the number of totally packed records and
+/// the second value is the number of totally packed samples.
+///
+/// If `flags` has [`MSControlFlags::MSF_FLUSHDATA`] set, all of the record data will be packed
+/// into miniSEED records even though the last one will probably be smaller than requested or, in
+/// the case of miniSEED v2, unfilled.
+/// If `flags` has [`MSControlFlags::MSF_PACKVER2`] set records are packed as miniSEED v2.
+#[allow(dead_code)]
+pub fn pack_record<F>(
+    msr: &MSRecord,
+    mut record_handler: F,
+    flags: MSControlFlags,
+) -> MSResult<(usize, usize)>
+where
+    F: FnMut(&[u8]),
+{
+    let mut cnt_samples: c_long = 0;
+    let cnt_samples_ptr = &mut cnt_samples as *mut _;
+
+    let cnt_records = unsafe {
+        check(raw::msr3_pack(
+            msr.get_raw(),
+            Some(rh_wrapper::<F>),
+            (&mut record_handler) as *mut _ as *mut c_void,
+            cnt_samples_ptr,
+            flags.bits(),
+            0,
+        ))?
+    };
+
+    Ok((cnt_records as usize, cnt_samples as usize))
+}
+
+///  Repack a parsed miniSEED record into a version 3 record.
+///
+///  Pack the parsed header into a version 3 header and copy the raw encoded data from the original
+///  record. Returns on success the record length in bytes.
+///
+///  Note that this can be used to efficiently convert format versions or modify header values
+///  without unpacking the data samples.
+///
+///  # Examples
+#[allow(dead_code)]
+pub fn repack_mseed3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
+    Ok(unsafe {
+        check(raw::msr3_repack_mseed3(
+            msr.get_raw(),
+            buf.as_mut_ptr() as *mut _,
+            buf.len() as c_uint,
+            0,
+        ))? as usize
+    })
+}
+
+/// Pack a miniSEED version 3 header into the specified buffer.
+///
+/// Returns on success the size of the header (fixed and extra) in bytes.
+#[allow(dead_code)]
+pub fn pack_header3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
+    Ok(unsafe {
+        check(raw::msr3_pack_header3(
+            msr.get_raw(),
+            buf.as_mut_ptr() as *mut _,
+            buf.len() as c_uint,
+            0,
+        ))? as usize
+    })
+}
+
+/// Pack a miniSEED version 2 header into the specified buffer.
+///
+/// Returns on success the size of the header (fixed and blockettes) in bytes.
+#[allow(dead_code)]
+pub fn pack_header2(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
+    Ok(unsafe {
+        check(raw::msr3_pack_header2(
+            msr.get_raw(),
+            buf.as_mut_ptr() as *mut _,
+            buf.len() as c_uint,
+            0,
+        ))? as usize
+    })
 }

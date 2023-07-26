@@ -86,7 +86,7 @@ fn main() {
     let mut reader = MSReader::new_with_flags(args.in_file, flags).unwrap();
     // Loop over miniSEED records
     while let Some(msr) = reader.next() {
-        let mut msr = msr.unwrap();
+        let msr = msr.unwrap();
 
         rec_cnt += 1;
         sample_cnt += msr.sample_cnt();

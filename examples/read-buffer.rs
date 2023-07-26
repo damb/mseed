@@ -38,7 +38,7 @@ fn main() {
     // Set control flags to validate CRC and unpack data samples
     let flags = MSControlFlags::MSF_VALIDATECRC | MSControlFlags::MSF_UNPACKDATA;
     // Create a `MSTraceList` from a buffer
-    let mstl = MSTraceList::from_buffer(&mut buf, flags).unwrap();
+    let mstl = MSTraceList::from_buffer(&buf, flags).unwrap();
     // Print summary
     print!("{}", mstl.display(MSTimeFormat::IsoMonthDay, 1, 1, 0));
 }

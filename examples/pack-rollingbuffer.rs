@@ -56,23 +56,31 @@ fn main() {
 
         mstl.insert(msr, true).unwrap();
 
-        let (cnt_records, cnt_samples) = mstl
-            .pack(record_handler, &pack_info, MSControlFlags::empty())
-            .unwrap();
+        let (cnt_records, cnt_samples) = mseed::pack_trace_list(
+            &mut mstl,
+            record_handler,
+            &pack_info,
+            MSControlFlags::empty(),
+        )
+        .unwrap();
 
         println!(
-            "mstl.pack() created {} records containing {} samples, totally",
+            "mseed::pack_trace_list() created {} records containing {} samples, totally",
             cnt_records, cnt_samples
         );
     }
 
     // Final call to flush data buffers - now with `MSControlFlags::MSF_FLUSHDATA` enabled
-    let (cnt_records, cnt_samples) = mstl
-        .pack(record_handler, &pack_info, MSControlFlags::MSF_FLUSHDATA)
-        .unwrap();
+    let (cnt_records, cnt_samples) = mseed::pack_trace_list(
+        &mut mstl,
+        record_handler,
+        &pack_info,
+        MSControlFlags::MSF_FLUSHDATA,
+    )
+    .unwrap();
 
     println!(
-        "Final mstl.pack() created {} records containing {} samples, totally",
+        "Final mseed::pack_trace_list() created {} records containing {} samples, totally",
         cnt_records, cnt_samples
     );
 }
