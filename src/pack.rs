@@ -57,7 +57,7 @@ pub fn pack_trace_list<F>(
     mut record_handler: F,
     info: &TlPackInfo,
     flags: MSControlFlags,
-) -> MSResult<(c_long, c_long)>
+) -> MSResult<(usize, usize)>
 where
     F: FnMut(&[u8]),
 {
@@ -89,7 +89,7 @@ where
         }
     }
 
-    Ok((cnt_records, cnt_samples))
+    Ok((cnt_records as usize, cnt_samples as usize))
 }
 
 /// Struct providing miniSEED record packing information.
@@ -272,7 +272,7 @@ pub fn pack_raw<T, F>(
     mut record_handler: F,
     info: &PackInfo,
     flags: MSControlFlags,
-) -> MSResult<(c_long, c_long)>
+) -> MSResult<(usize, usize)>
 where
     F: FnMut(&[u8]),
 {
@@ -344,7 +344,7 @@ where
         raw::msr3_free((&mut msr) as *mut *mut _);
     }
 
-    Ok((cnt_records.into(), cnt_samples))
+    Ok((cnt_records as usize, cnt_samples as usize))
 }
 
 extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
@@ -372,7 +372,7 @@ pub fn pack_record<F>(
     msr: &MSRecord,
     mut record_handler: F,
     flags: MSControlFlags,
-) -> MSResult<(c_long, c_long)>
+) -> MSResult<(usize, usize)>
 where
     F: FnMut(&[u8]),
 {
@@ -390,7 +390,7 @@ where
         ))?
     };
 
-    Ok((cnt_records.into(), cnt_samples))
+    Ok((cnt_records as usize, cnt_samples as usize))
 }
 
 ///  Repack a parsed miniSEED record into a version 3 record.
@@ -400,15 +400,17 @@ where
 ///
 ///  Note that this can be used to efficiently convert format versions or modify header values
 ///  without unpacking the data samples.
+///
+///  # Examples
 #[allow(dead_code)]
-pub fn repack_mseed3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<c_int> {
+pub fn repack_mseed3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
     Ok(unsafe {
         check(raw::msr3_repack_mseed3(
             msr.get_raw(),
             buf.as_mut_ptr() as *mut _,
             buf.len() as c_uint,
             0,
-        ))?
+        ))? as usize
     })
 }
 
@@ -416,14 +418,14 @@ pub fn repack_mseed3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<c_int> {
 ///
 /// Returns on success the size of the header (fixed and extra) in bytes.
 #[allow(dead_code)]
-pub fn pack_header3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<c_int> {
+pub fn pack_header3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
     Ok(unsafe {
         check(raw::msr3_pack_header3(
             msr.get_raw(),
             buf.as_mut_ptr() as *mut _,
             buf.len() as c_uint,
             0,
-        ))?
+        ))? as usize
     })
 }
 
@@ -431,13 +433,13 @@ pub fn pack_header3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<c_int> {
 ///
 /// Returns on success the size of the header (fixed and blockettes) in bytes.
 #[allow(dead_code)]
-pub fn pack_header2(msr: &MSRecord, buf: &mut [u8]) -> MSResult<c_int> {
+pub fn pack_header2(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
     Ok(unsafe {
         check(raw::msr3_pack_header2(
             msr.get_raw(),
             buf.as_mut_ptr() as *mut _,
             buf.len() as c_uint,
             0,
-        ))?
+        ))? as usize
     })
 }
