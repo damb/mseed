@@ -5,9 +5,92 @@ use std::slice;
 
 use crate::{
     error::check, raw, util, MSControlFlags, MSDataEncoding, MSError, MSRecord, MSResult,
-    MSSampleType,
+    MSSampleType, MSTraceList,
 };
 use raw::MS3Record;
+
+/// Struct aggregating [`MSTraceList`] packing information.
+///
+/// See also [`PackInfo`].
+#[derive(Debug, Clone)]
+pub struct TlPackInfo {
+    // /// The miniSEED format version.
+    // pub format_version: c_uchar,
+    /// Data encoding.
+    pub encoding: MSDataEncoding,
+    /// Record length used for encoding.
+    pub rec_len: c_int,
+    /// Extra headers.
+    ///
+    /// If not `None` it is expected to contain extra headers, i.e. a string containing (compact)
+    /// JSON, that will be added to each output record.
+    pub extra_headers: Option<CString>,
+}
+
+impl Default for TlPackInfo {
+    fn default() -> Self {
+        Self {
+            encoding: MSDataEncoding::Steim2,
+            rec_len: 4096,
+            extra_headers: None,
+        }
+    }
+}
+
+/// Packs the trace lists' data into miniSEED records.
+///
+/// Buffers containing the packed miniSEED records are passed to the `record_handler` closure.
+/// Returns on success a tuple where the first value is the number of totally packed records
+/// and the second value is the number of totally packed samples.
+///
+/// Packing is controlled by the following `flags`:
+/// - If `flags` has [`MSControlFlags::MSF_FLUSHDATA`] set, all of the trace lists' data will be
+/// packed into miniSEED records even though the last one will probably be smaller than
+/// requested or, in the case of miniSEED v2, unfilled.
+/// - If `flags` has [`MSControlFlags::MSF_PACKVER2`] set records are packed as miniSEED v2.
+/// - If `flags` has [`MSControlFlags::MSF_MAINTAINMSTL`] packed data is not removed from the
+/// trace lists' internal buffers.
+///
+/// See also [`pack()`] for packing raw data samples.
+pub fn pack_trace_list<F>(
+    mstl: &mut MSTraceList,
+    mut record_handler: F,
+    info: &TlPackInfo,
+    flags: MSControlFlags,
+) -> MSResult<(c_long, c_long)>
+where
+    F: FnMut(&[u8]),
+{
+    let mut extra_ptr = ptr::null_mut();
+    if let Some(extra_headers) = &info.extra_headers {
+        let cloned = extra_headers.clone();
+        extra_ptr = cloned.into_raw();
+    }
+
+    let mut cnt_samples: c_long = 0;
+    let cnt_samples_ptr = &mut cnt_samples as *mut _;
+    let cnt_records = unsafe {
+        check(raw::mstl3_pack(
+            mstl.get_raw_mut(),
+            Some(rh_wrapper::<F>),
+            (&mut record_handler) as *mut _ as *mut c_void,
+            info.rec_len,
+            info.encoding as c_char,
+            cnt_samples_ptr,
+            flags.bits(),
+            0,
+            extra_ptr,
+        ))?
+    };
+
+    if !extra_ptr.is_null() {
+        unsafe {
+            let _ = CString::from_raw(extra_ptr);
+        }
+    }
+
+    Ok((cnt_records, cnt_samples))
+}
 
 /// Struct providing miniSEED record packing information.
 #[derive(Debug, Clone)]
@@ -264,7 +347,7 @@ where
     Ok((cnt_records.into(), cnt_samples))
 }
 
-pub(crate) extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
+extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
 where
     F: FnMut(&[u8]),
 {

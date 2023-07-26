@@ -88,13 +88,15 @@ use libmseed_sys as raw;
 
 pub use crate::error::MSError;
 pub use crate::io::{ConnectionInfo, IntoConnectionInfo, MSFileParam, MSReader, MSWriter};
-pub use crate::pack::{pack, pack_header2, pack_header3, pack_record, repack_mseed3, PackInfo};
+pub use crate::pack::{
+    pack, pack_header2, pack_header3, pack_record, pack_trace_list, repack_mseed3, PackInfo,
+    TlPackInfo,
+};
 pub use crate::record::{
     detect, MSDataEncoding, MSRecord, MSSampleType, RecordDetection, RecordDisplay,
 };
 pub use crate::trace::{
     DataSampleType, MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter,
-    TlPackInfo,
 };
 pub use crate::util::{seedchan2xchan, xchan2seedchan, MSSubSeconds, MSTimeFormat};
 
