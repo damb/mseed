@@ -9,7 +9,7 @@
 //! The mseed library strives to be as close to libmseed as possible, but also
 //! strives to make using libmseed as safe as possible. All resource management
 //! is automatic as well as adding strong types to all interfaces (including
-//! `MSResult`)
+//! `MSResult`).
 //!
 //! ## High-level miniSEED record I/O
 //!
