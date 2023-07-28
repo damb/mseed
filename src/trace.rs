@@ -30,10 +30,7 @@ impl MSTraceId {
         self.0
     }
 
-    /// Returns the FDSN source identifier.
-    ///
-    /// FDSN source identifiers are defined at:
-    /// `<https://docs.fdsn.org/projects/source-identifiers/>`
+    /// Returns the [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
     pub fn sid(&self) -> MSResult<String> {
         let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.to_string())
@@ -448,9 +445,10 @@ impl MSTraceList {
 
     /// Returns an object that implements [`Display`] for printing a trace list summary.
     ///
-    /// By default only prints the FDSN source identifier, starttime and endtime for each
-    /// trace. If `detail` is greater than zero the sample rate, number of samples and a total trace
-    /// count is included.
+    /// By default only prints the [FDSN source
+    /// identifier](https://docs.fdsn.org/projects/source-identifiers/), starttime and endtime for
+    /// each trace. If `detail` is greater than zero the sample rate, number of samples and a total
+    /// trace count is included.
     /// If `gap` is greater than zero and the previous trace matches both the FDSN source identifier
     /// and  the sample rate the gap between the endtime of the last trace and the starttime of the
     /// current trace is included.

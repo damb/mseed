@@ -134,7 +134,8 @@ pub(crate) struct NetStaLocCha {
 }
 
 impl NetStaLocCha {
-    /// Creates a new `NSLC` structure from a FDSN source identifier buffer slice.
+    /// Creates a new `NSLC` structure from a [FDSN source
+    /// identifier](https://docs.fdsn.org/projects/source-identifiers/) buffer slice.
     pub fn from_sid(sid: &[c_char]) -> MSResult<Self> {
         let s0 = "           ";
         let s1 = "                               ";

@@ -216,16 +216,13 @@ impl MSRecord {
         unsafe { check(raw::msr3_unpack_data(self.0, 0)) }
     }
 
-    /// Returns the FDSN source identifier.
-    ///
-    /// FDSN source identifiers are defined at:
-    /// `<https://docs.fdsn.org/projects/source-identifiers/>`
+    /// Returns the [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
     pub fn sid(&self) -> MSResult<String> {
         let nslc = util::NetStaLocCha::from_sid(&self.ptr().sid)?;
         Ok(nslc.to_string())
     }
 
-    /// Returns a lossy version of the FDSN source indentifier.
+    /// Returns a lossy version of the [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
     pub fn sid_lossy(&self) -> String {
         util::i8_to_string(&(self.ptr().sid))
     }

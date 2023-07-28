@@ -96,7 +96,7 @@ where
 /// Struct providing miniSEED record packing information.
 #[derive(Debug, Clone)]
 pub struct PackInfo {
-    /// FDSN source identifier.
+    /// [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
     sid: CString,
     /// Record sample rate.
     pub sample_rate: c_double,
@@ -116,7 +116,7 @@ pub struct PackInfo {
 }
 
 impl PackInfo {
-    /// Creates a new `PackInfo`.
+    /// Creates a new `PackInfo` from a [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
     pub fn new<T>(sid: T) -> MSResult<Self>
     where
         T: Into<Vec<u8>>,
@@ -132,7 +132,9 @@ impl PackInfo {
         })
     }
 
-    /// Creates a new `PackInfo` with configured `sample_rate`.
+    /// Creates a new `PackInfo` from a [FDSN source
+    /// identifier](https://docs.fdsn.org/projects/source-identifiers/) with configured sample
+    /// rate.
     pub fn with_sample_rate<T>(sid: T, sample_rate: c_double) -> MSResult<Self>
     where
         T: Into<Vec<u8>>,
@@ -143,12 +145,13 @@ impl PackInfo {
         Ok(rv)
     }
 
-    /// Returns a reference to the FDSN source identifier.
+    /// Returns a reference to the [FDSN source
+    /// identifier](https://docs.fdsn.org/projects/source-identifiers/).
     pub fn sid(&self) -> &CString {
         &self.sid
     }
 
-    /// Sets the FDSN source identifier.
+    /// Sets the [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
     pub fn set_sid<T>(&mut self, sid: T) -> MSResult<()>
     where
         T: Into<Vec<u8>>,
