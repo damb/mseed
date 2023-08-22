@@ -156,7 +156,7 @@ impl<'id> MSTraceSegment<'id> {
 
     /// Returns the trace segment sample type.
     pub fn sample_type(&self) -> MSSampleType {
-        MSSampleType::from_char(self.ptr().sampletype)
+        MSSampleType::from_char(self.ptr().sampletype as _)
     }
 
     /// Returns whether the data samples are unpacked.
@@ -208,8 +208,8 @@ impl DataSampleType for c_int {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
-                MSSampleType::Integer32 as i8,
-                truncate as i8,
+                MSSampleType::Integer32 as _,
+                truncate as _,
             ))
         };
 
@@ -225,8 +225,8 @@ impl DataSampleType for c_float {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
-                MSSampleType::Float32 as i8,
-                truncate as i8,
+                MSSampleType::Float32 as _,
+                truncate as _,
             ))
         };
 
@@ -242,8 +242,8 @@ impl DataSampleType for c_double {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
-                MSSampleType::Float64 as i8,
-                truncate as i8,
+                MSSampleType::Float64 as _,
+                truncate as _,
             ))
         };
 
