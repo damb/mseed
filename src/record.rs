@@ -32,7 +32,7 @@ pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
     let rec_len = unsafe {
         check(raw::ms3_detect(
             buf.as_ptr() as *const _,
-            buf.len() as c_ulong,
+            (buf.len() as c_ulong).into(),
             format_version_ptr,
         ))
     }?;
@@ -50,7 +50,7 @@ pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
 }
 
 /// An enumeration of possible sample types.
-#[repr(i8)]
+#[repr(u8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSSampleType {
     /// Unknown data sample type.
@@ -67,7 +67,7 @@ pub enum MSSampleType {
 
 impl MSSampleType {
     /// Creates a `MSSampleType` from the given `ch`.
-    pub fn from_char(ch: c_char) -> Self {
+    pub fn from_char(ch: u8) -> Self {
         match ch {
             116 => Self::Text,      // t
             105 => Self::Integer32, // i
@@ -79,41 +79,41 @@ impl MSSampleType {
 }
 
 /// An enumeration of possible data encodings.
-#[repr(i8)]
+#[repr(u8)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSDataEncoding {
     /// Text encoding (UTF-8)
-    Text = raw::DE_TEXT as c_char,
+    Text = raw::DE_TEXT as u8,
     /// 16-bit integer encoding
-    Integer16 = raw::DE_INT16 as c_char,
+    Integer16 = raw::DE_INT16 as u8,
     /// 32-bit integer encoding
-    Integer32 = raw::DE_INT32 as c_char,
+    Integer32 = raw::DE_INT32 as u8,
     /// 32-bit floating point encoding (IEEE)
-    Float32 = raw::DE_FLOAT32 as c_char,
+    Float32 = raw::DE_FLOAT32 as u8,
     /// 64-bit floating point encoding (IEEE)
-    Float64 = raw::DE_FLOAT64 as c_char,
+    Float64 = raw::DE_FLOAT64 as u8,
     /// Steim-1 compressed integer encoding
-    Steim1 = raw::DE_STEIM1 as c_char,
+    Steim1 = raw::DE_STEIM1 as u8,
     /// Steim-2 compressed integer encoding
-    Steim2 = raw::DE_STEIM2 as c_char,
+    Steim2 = raw::DE_STEIM2 as u8,
     /// **Legacy**: GEOSCOPE 24-bit integer encoding
-    GeoScope24 = raw::DE_GEOSCOPE24 as c_char,
+    GeoScope24 = raw::DE_GEOSCOPE24 as u8,
     /// **Legacy**: GEOSCOPE 16-bit gain ranged, 3-bit exponent
-    GeoScope163 = raw::DE_GEOSCOPE163 as c_char,
+    GeoScope163 = raw::DE_GEOSCOPE163 as u8,
     /// **Legacy**: GEOSCOPE 16-bit gain ranged, 4-bit exponent
-    GeoScope164 = raw::DE_GEOSCOPE164 as c_char,
+    GeoScope164 = raw::DE_GEOSCOPE164 as u8,
     /// **Legacy**: CDSN 16-bit gain ranged
-    CDSN = raw::DE_CDSN as c_char,
+    CDSN = raw::DE_CDSN as u8,
     /// **Legacy**: SRO 16-bit gain ranged
-    SRO = raw::DE_SRO as c_char,
+    SRO = raw::DE_SRO as u8,
     /// **Legacy**: DWWSSN 16-bit gain ranged
-    DWWSSN = raw::DE_DWWSSN as c_char,
+    DWWSSN = raw::DE_DWWSSN as u8,
 }
 
 impl MSDataEncoding {
     /// Create a `MSDataEncoding` from the given `ch`.
-    pub fn from_char(ch: c_char) -> MSResult<Self> {
-        match ch as c_uint {
+    pub fn from_char(ch: u8) -> MSResult<Self> {
+        match ch as u32 {
             raw::DE_TEXT => Ok(Self::Text),
             raw::DE_INT16 => Ok(Self::Integer16),
             raw::DE_INT32 => Ok(Self::Integer32),
@@ -180,7 +180,7 @@ impl MSRecord {
             let buf = &*(buf as *const [_] as *const [c_char]);
             check(raw::msr3_parse(
                 buf.as_ptr(),
-                buf.len() as c_ulong,
+                (buf.len() as c_ulong).into(),
                 (&mut msr) as *mut *mut MS3Record,
                 flags.bits(),
                 0,
@@ -213,7 +213,7 @@ impl MSRecord {
         if !self.ptr().datasamples.is_null() {
             return Ok(self.num_samples());
         }
-        unsafe { check(raw::msr3_unpack_data(self.0, 0)) }
+        unsafe { check(raw::msr3_unpack_data(self.0, 0).try_into().unwrap()) }
     }
 
     /// Returns the [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
@@ -224,7 +224,7 @@ impl MSRecord {
 
     /// Returns a lossy version of the [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
     pub fn sid_lossy(&self) -> String {
-        util::i8_to_string(&(self.ptr().sid))
+        util::to_string(&(self.ptr().sid))
     }
 
     /// Returns the network code identifier of the record.
@@ -278,12 +278,12 @@ impl MSRecord {
 
     /// Returns the start time of the record (i.e. the time of the first sample).
     pub fn start_time(&self) -> MSResult<time::OffsetDateTime> {
-        util::nstime_to_time(self.ptr().starttime)
+        util::nstime_to_time(self.ptr().starttime.try_into().unwrap())
     }
 
     /// Calculates the end time of the last sample in the record.
     pub fn end_time(&self) -> MSResult<time::OffsetDateTime> {
-        unsafe { util::nstime_to_time(check_nst(raw::msr3_endtime(self.0))?) }
+        unsafe { util::nstime_to_time(check_nst(raw::msr3_endtime(self.0).try_into().unwrap())?) }
     }
 
     /// Returns the nominal sample rate as samples per second (`Hz`)
@@ -293,7 +293,7 @@ impl MSRecord {
 
     /// Returns the data encoding format of the record.
     pub fn encoding(&self) -> MSResult<MSDataEncoding> {
-        MSDataEncoding::from_char(self.ptr().encoding)
+        MSDataEncoding::from_char(self.ptr().encoding as _)
     }
 
     /// Returns the record publication version.
@@ -303,7 +303,7 @@ impl MSRecord {
 
     /// Returns the number of data samples as indicated by the raw record.
     pub fn sample_cnt(&self) -> c_long {
-        self.ptr().samplecnt
+        self.ptr().samplecnt.try_into().unwrap()
     }
 
     /// Returns the CRC of the record.
@@ -352,17 +352,17 @@ impl MSRecord {
 
     /// Returns the number of (unpacked) data samples.
     pub fn num_samples(&self) -> c_long {
-        self.ptr().numsamples
+        self.ptr().numsamples.try_into().unwrap()
     }
 
     /// Returns the record sample type.
     pub fn sample_type(&self) -> MSSampleType {
-        MSSampleType::from_char(self.ptr().sampletype)
+        MSSampleType::from_char(self.ptr().sampletype as _)
     }
 
     /// Creates a new independently owned [`MSRecord`] from the underlying record.
     pub fn try_clone(&self) -> MSResult<Self> {
-        let rv = unsafe { raw::msr3_duplicate(self.0, true as i8) };
+        let rv = unsafe { raw::msr3_duplicate(self.0, true as _) };
 
         if rv.is_null() {
             return Err(MSError::from_str("failed to duplicate"));
@@ -411,7 +411,7 @@ impl fmt::Display for MSRecord {
             v.samplecnt,
             self.sample_rate_hz(),
             util::nstime_to_string(
-                v.starttime,
+                v.starttime.try_into().unwrap(),
                 MSTimeFormat::IsoMonthDayDoyZ,
                 MSSubSeconds::NanoMicro
             )
@@ -470,7 +470,7 @@ impl fmt::Display for RecordDisplay<'_> {
             )?;
             let start_time = unsafe { (*self.rec.get_raw()).starttime };
             let start_time = util::nstime_to_string(
-                start_time,
+                start_time.try_into().unwrap(),
                 MSTimeFormat::IsoMonthDayDoyZ,
                 MSSubSeconds::NanoMicro,
             )
