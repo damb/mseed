@@ -266,7 +266,7 @@ impl<W: Write> MSWriter<W> {
                 Some(record_handler::<W>),
                 (&mut self.writer) as *mut _ as *mut c_void,
                 max_rec_len,
-                encoding as c_char,
+                encoding as _,
                 ptr::null_mut(),
                 flags.bits(),
                 0,

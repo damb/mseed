@@ -68,15 +68,15 @@ where
         extra_ptr = cloned.into_raw();
     }
 
-    let mut cnt_samples: c_long = 0;
-    let cnt_samples_ptr = &mut cnt_samples as *mut _;
+    let mut cnt_samples: i64 = 0;
+    let cnt_samples_ptr: *mut i64 = &mut cnt_samples;
     let cnt_records = unsafe {
         check(raw::mstl3_pack(
             mstl.get_raw_mut(),
             Some(rh_wrapper::<F>),
             (&mut record_handler) as *mut _ as *mut c_void,
             info.rec_len,
-            info.encoding as c_char,
+            info.encoding as _,
             cnt_samples_ptr,
             flags.bits(),
             0,
@@ -289,7 +289,7 @@ where
     unsafe {
         let sid_len = info.sid().as_bytes_with_nul().len();
         ptr::copy_nonoverlapping(info.sid().as_ptr(), (*msr).sid.as_mut_ptr(), sid_len);
-        (*msr).encoding = info.encoding as c_char;
+        (*msr).encoding = info.encoding as _;
         (*msr).sampletype = {
             use MSDataEncoding::*;
             match info.encoding {
@@ -305,7 +305,8 @@ where
         (*msr).pubversion = info.pub_version;
         (*msr).formatversion = info.format_version;
         (*msr).numsamples = c_long::try_from(data_samples.len())
-            .map_err(|e| MSError::from_str(&format!("invalid data sample length ({})", e)))?;
+            .map_err(|e| MSError::from_str(&format!("invalid data sample length ({})", e)))?
+            as _;
         (*msr).datasamples = data_samples.as_mut_ptr() as *mut _ as *mut c_void;
         (*msr).datasize = mem::size_of_val(data_samples);
         (*msr).extralength = 0;
@@ -321,8 +322,8 @@ where
         }
     }
 
-    let mut cnt_samples: c_long = 0;
-    let cnt_samples_ptr = &mut cnt_samples as *mut _;
+    let mut cnt_samples: i64 = 0;
+    let cnt_samples_ptr: *mut i64 = &mut cnt_samples;
 
     let cnt_records = unsafe {
         check(raw::msr3_pack(
@@ -380,8 +381,8 @@ pub fn pack_record<F>(
 where
     F: FnMut(&[u8]),
 {
-    let mut cnt_samples: c_long = 0;
-    let cnt_samples_ptr = &mut cnt_samples as *mut _;
+    let mut cnt_samples: i64 = 0;
+    let cnt_samples_ptr: *mut i64 = &mut cnt_samples;
 
     let cnt_records = unsafe {
         check(raw::msr3_pack(

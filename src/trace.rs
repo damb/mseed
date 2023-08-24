@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_float, c_int, c_long, c_uchar, c_uint, c_ulong};
+use std::ffi::{c_double, c_float, c_int, c_long, c_uchar, c_uint};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -43,12 +43,12 @@ impl MSTraceId {
 
     /// Returns the time of the the first sample.
     pub fn start_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().earliest)
+        util::nstime_to_time(self.ptr().earliest as _)
     }
 
     /// Returns the time of the the last sample.
     pub fn end_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().latest)
+        util::nstime_to_time(self.ptr().latest as _)
     }
 
     /// Returns the number of [`MSTraceSegment`]s for this trace identifier.
@@ -106,12 +106,12 @@ impl<'id> MSTraceSegment<'id> {
 
     /// Returns the time of the the first sample.
     pub fn start_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().starttime)
+        util::nstime_to_time(self.ptr().starttime as _)
     }
 
     /// Returns the time of the the last sample.
     pub fn end_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().endtime)
+        util::nstime_to_time(self.ptr().endtime as _)
     }
 
     /// Returns the nominal sample rate as samples per second (`Hz`)
@@ -121,7 +121,7 @@ impl<'id> MSTraceSegment<'id> {
 
     /// Returns the number of samples in trace coverage.
     pub fn sample_cnt(&self) -> c_long {
-        self.ptr().samplecnt
+        self.ptr().samplecnt as _
     }
 
     /// Returns the data samples of the trace segment.
@@ -151,12 +151,12 @@ impl<'id> MSTraceSegment<'id> {
 
     /// Returns the number of (unpacked) data samples.
     pub fn num_samples(&self) -> c_long {
-        self.ptr().numsamples
+        self.ptr().numsamples as _
     }
 
     /// Returns the trace segment sample type.
     pub fn sample_type(&self) -> MSSampleType {
-        MSSampleType::from_char(self.ptr().sampletype)
+        MSSampleType::from_char(self.ptr().sampletype as _)
     }
 
     /// Returns whether the data samples are unpacked.
@@ -208,8 +208,8 @@ impl DataSampleType for c_int {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
-                MSSampleType::Integer32 as i8,
-                truncate as i8,
+                MSSampleType::Integer32 as _,
+                truncate as _,
             ))
         };
 
@@ -225,8 +225,8 @@ impl DataSampleType for c_float {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
-                MSSampleType::Float32 as i8,
-                truncate as i8,
+                MSSampleType::Float32 as _,
+                truncate as _,
             ))
         };
 
@@ -242,8 +242,8 @@ impl DataSampleType for c_double {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
                 seg,
-                MSSampleType::Float64 as i8,
-                truncate as i8,
+                MSSampleType::Float64 as _,
+                truncate as _,
             ))
         };
 
@@ -390,7 +390,7 @@ impl MSTraceList {
             check(raw::mstl3_readbuffer(
                 (&mut rv.get_raw_mut()) as *mut *mut _,
                 buf.as_ptr(),
-                buf.len() as c_ulong,
+                buf.len() as _,
                 0,
                 flags.bits(),
                 ptr::null_mut(),
@@ -430,7 +430,7 @@ impl MSTraceList {
                 rec.into_raw(),
                 ptr::null_mut(),
                 0,
-                autoheal as c_char,
+                autoheal as _,
                 MSControlFlags::empty().bits(),
                 ptr::null_mut(),
             )
@@ -521,14 +521,20 @@ impl fmt::Display for TraceListDisplay<'_> {
             };
             for tseg in tid.iter() {
                 let start_time = unsafe { (*tseg.inner).starttime };
-                let start_time_str =
-                    util::nstime_to_string(start_time, self.time_format, MSSubSeconds::NanoMicro)
-                        .map_err(|_| fmt::Error)?;
+                let start_time_str = util::nstime_to_string(
+                    start_time as _,
+                    self.time_format,
+                    MSSubSeconds::NanoMicro,
+                )
+                .map_err(|_| fmt::Error)?;
 
                 let end_time = unsafe { (*tseg.inner).endtime };
-                let end_time_str =
-                    util::nstime_to_string(end_time, self.time_format, MSSubSeconds::NanoMicro)
-                        .map_err(|_| fmt::Error)?;
+                let end_time_str = util::nstime_to_string(
+                    end_time as _,
+                    self.time_format,
+                    MSSubSeconds::NanoMicro,
+                )
+                .map_err(|_| fmt::Error)?;
 
                 if self.gap > 0 {
                     let mut gap: f64 = 0.0;

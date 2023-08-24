@@ -73,7 +73,7 @@ pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
     let mut nsec = 0;
     unsafe {
         check(raw::ms_nstime2time(
-            nst, &mut year, &mut yday, &mut hour, &mut min, &mut sec, &mut nsec,
+            nst as _, &mut year, &mut yday, &mut hour, &mut min, &mut sec, &mut nsec,
         ))?
     };
 
@@ -95,8 +95,13 @@ pub fn nstime_to_string(
         .unwrap()
         .into_raw();
     unsafe {
-        if raw::ms_nstime2timestr(nst, time, time_format.as_raw(), subsecond_format.as_raw())
-            .is_null()
+        if raw::ms_nstime2timestr(
+            nst as _,
+            time,
+            time_format.as_raw(),
+            subsecond_format.as_raw(),
+        )
+        .is_null()
         {
             return Err(MSError::from_str("failed to convert nstime to string"));
         }
@@ -109,8 +114,8 @@ pub fn time_to_nstime(t: &time::OffsetDateTime) -> i64 {
     t.unix_timestamp()
 }
 
-/// Utility function safely converting a slice of `i8` values into a `String`.
-pub(crate) fn i8_to_string(buf: &[i8]) -> String {
+/// Utility function safely converting a slice of `c_char` values into a `String`.
+pub(crate) fn to_string(buf: &[c_char]) -> String {
     let v: Vec<u8> = buf
         .iter()
         .map(|x| *x as u8) // cast i8 as u8
@@ -139,7 +144,7 @@ impl NetStaLocCha {
     pub fn from_sid(sid: &[c_char]) -> MSResult<Self> {
         let s0 = "           ";
         let s1 = "                               ";
-        let sid = CString::new(i8_to_string(sid)).unwrap().into_raw();
+        let sid = CString::new(to_string(sid)).unwrap().into_raw();
         let xnet = CString::new(s0).unwrap().into_raw();
         let xsta = CString::new(s0).unwrap().into_raw();
         let xloc = CString::new(s0).unwrap().into_raw();
