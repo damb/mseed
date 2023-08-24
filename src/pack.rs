@@ -68,8 +68,8 @@ where
         extra_ptr = cloned.into_raw();
     }
 
-    let cnt_samples: c_long = 0;
-    let cnt_samples_ptr = (&mut cnt_samples.into()) as *mut _;
+    let mut cnt_samples: i64 = 0;
+    let cnt_samples_ptr: *mut i64 = &mut cnt_samples;
     let cnt_records = unsafe {
         check(raw::mstl3_pack(
             mstl.get_raw_mut(),
@@ -322,8 +322,8 @@ where
         }
     }
 
-    let cnt_samples: c_long = 0;
-    let cnt_samples_ptr = (&mut cnt_samples.into()) as *mut _;
+    let mut cnt_samples: i64 = 0;
+    let cnt_samples_ptr: *mut i64 = &mut cnt_samples;
 
     let cnt_records = unsafe {
         check(raw::msr3_pack(
@@ -381,8 +381,8 @@ pub fn pack_record<F>(
 where
     F: FnMut(&[u8]),
 {
-    let cnt_samples: c_long = 0;
-    let cnt_samples_ptr = (&mut cnt_samples.into()) as *mut _;
+    let mut cnt_samples: i64 = 0;
+    let cnt_samples_ptr: *mut i64 = &mut cnt_samples;
 
     let cnt_records = unsafe {
         check(raw::msr3_pack(
