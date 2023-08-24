@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ulong, c_ushort, CStr};
+use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ushort, CStr};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -32,7 +32,7 @@ pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
     let rec_len = unsafe {
         check(raw::ms3_detect(
             buf.as_ptr() as *const _,
-            (buf.len() as c_ulong).into(),
+            buf.len() as _,
             format_version_ptr,
         ))
     }?;
@@ -180,7 +180,7 @@ impl MSRecord {
             let buf = &*(buf as *const [_] as *const [c_char]);
             check(raw::msr3_parse(
                 buf.as_ptr(),
-                (buf.len() as c_ulong).into(),
+                buf.len() as _,
                 (&mut msr) as *mut *mut MS3Record,
                 flags.bits(),
                 0,
@@ -213,7 +213,7 @@ impl MSRecord {
         if !self.ptr().datasamples.is_null() {
             return Ok(self.num_samples());
         }
-        unsafe { check(raw::msr3_unpack_data(self.0, 0).try_into().unwrap()) }
+        unsafe { check(raw::msr3_unpack_data(self.0, 0) as _) }
     }
 
     /// Returns the [FDSN source identifier](https://docs.fdsn.org/projects/source-identifiers/).
@@ -278,12 +278,12 @@ impl MSRecord {
 
     /// Returns the start time of the record (i.e. the time of the first sample).
     pub fn start_time(&self) -> MSResult<time::OffsetDateTime> {
-        util::nstime_to_time(self.ptr().starttime.try_into().unwrap())
+        util::nstime_to_time(self.ptr().starttime as _)
     }
 
     /// Calculates the end time of the last sample in the record.
     pub fn end_time(&self) -> MSResult<time::OffsetDateTime> {
-        unsafe { util::nstime_to_time(check_nst(raw::msr3_endtime(self.0).try_into().unwrap())?) }
+        unsafe { util::nstime_to_time(check_nst(raw::msr3_endtime(self.0) as _)?) }
     }
 
     /// Returns the nominal sample rate as samples per second (`Hz`)
@@ -303,7 +303,7 @@ impl MSRecord {
 
     /// Returns the number of data samples as indicated by the raw record.
     pub fn sample_cnt(&self) -> c_long {
-        self.ptr().samplecnt.try_into().unwrap()
+        self.ptr().samplecnt as _
     }
 
     /// Returns the CRC of the record.
@@ -352,7 +352,7 @@ impl MSRecord {
 
     /// Returns the number of (unpacked) data samples.
     pub fn num_samples(&self) -> c_long {
-        self.ptr().numsamples.try_into().unwrap()
+        self.ptr().numsamples as _
     }
 
     /// Returns the record sample type.
@@ -411,7 +411,7 @@ impl fmt::Display for MSRecord {
             v.samplecnt,
             self.sample_rate_hz(),
             util::nstime_to_string(
-                v.starttime.try_into().unwrap(),
+                v.starttime as _,
                 MSTimeFormat::IsoMonthDayDoyZ,
                 MSSubSeconds::NanoMicro
             )
@@ -470,7 +470,7 @@ impl fmt::Display for RecordDisplay<'_> {
             )?;
             let start_time = unsafe { (*self.rec.get_raw()).starttime };
             let start_time = util::nstime_to_string(
-                start_time.try_into().unwrap(),
+                start_time as _,
                 MSTimeFormat::IsoMonthDayDoyZ,
                 MSSubSeconds::NanoMicro,
             )

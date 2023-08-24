@@ -69,14 +69,14 @@ where
     }
 
     let cnt_samples: c_long = 0;
-    let cnt_samples_ptr = &mut cnt_samples.into();
+    let cnt_samples_ptr = (&mut cnt_samples.into()) as *mut _;
     let cnt_records = unsafe {
         check(raw::mstl3_pack(
             mstl.get_raw_mut(),
             Some(rh_wrapper::<F>),
             (&mut record_handler) as *mut _ as *mut c_void,
             info.rec_len,
-            (info.encoding as c_char).try_into().unwrap(),
+            info.encoding as _,
             cnt_samples_ptr,
             flags.bits(),
             0,
@@ -289,7 +289,7 @@ where
     unsafe {
         let sid_len = info.sid().as_bytes_with_nul().len();
         ptr::copy_nonoverlapping(info.sid().as_ptr(), (*msr).sid.as_mut_ptr(), sid_len);
-        (*msr).encoding = (info.encoding as c_char).try_into().unwrap();
+        (*msr).encoding = info.encoding as _;
         (*msr).sampletype = {
             use MSDataEncoding::*;
             match info.encoding {
@@ -306,7 +306,7 @@ where
         (*msr).formatversion = info.format_version;
         (*msr).numsamples = c_long::try_from(data_samples.len())
             .map_err(|e| MSError::from_str(&format!("invalid data sample length ({})", e)))?
-            .into();
+            as _;
         (*msr).datasamples = data_samples.as_mut_ptr() as *mut _ as *mut c_void;
         (*msr).datasize = mem::size_of_val(data_samples);
         (*msr).extralength = 0;
@@ -323,7 +323,7 @@ where
     }
 
     let cnt_samples: c_long = 0;
-    let cnt_samples_ptr = &mut cnt_samples.into();
+    let cnt_samples_ptr = (&mut cnt_samples.into()) as *mut _;
 
     let cnt_records = unsafe {
         check(raw::msr3_pack(
@@ -382,7 +382,7 @@ where
     F: FnMut(&[u8]),
 {
     let cnt_samples: c_long = 0;
-    let cnt_samples_ptr = &mut cnt_samples.into();
+    let cnt_samples_ptr = (&mut cnt_samples.into()) as *mut _;
 
     let cnt_records = unsafe {
         check(raw::msr3_pack(

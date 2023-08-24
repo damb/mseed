@@ -73,13 +73,7 @@ pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
     let mut nsec = 0;
     unsafe {
         check(raw::ms_nstime2time(
-            nst.into(),
-            &mut year,
-            &mut yday,
-            &mut hour,
-            &mut min,
-            &mut sec,
-            &mut nsec,
+            nst as _, &mut year, &mut yday, &mut hour, &mut min, &mut sec, &mut nsec,
         ))?
     };
 
@@ -102,7 +96,7 @@ pub fn nstime_to_string(
         .into_raw();
     unsafe {
         if raw::ms_nstime2timestr(
-            nst.into(),
+            nst as _,
             time,
             time_format.as_raw(),
             subsecond_format.as_raw(),
