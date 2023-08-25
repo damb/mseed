@@ -8,7 +8,7 @@ use crate::{raw, MSErrorCode, MSResult};
 
 const MS_NOERROR: c_long = raw::MS_NOERROR as c_long;
 const MS_ENDOFFILE: c_long = raw::MS_ENDOFFILE as c_long;
-const MS_NSTERROR: c_long = raw::NSTERROR as c_long;
+const MS_NSTERROR: raw::nstime_t = raw::NSTERROR as raw::nstime_t;
 
 /// Utility function which turns a libmseed error into a result.
 pub(crate) fn check<T: PartialOrd + AsPrimitive<c_long>>(code: T) -> MSResult<T> {
@@ -29,7 +29,7 @@ pub(crate) fn check_eof<T: PartialEq + AsPrimitive<c_long>>(code: T) -> bool {
 /// into a result.
 ///
 /// On error a ``MSError` with code `MSErrorCode::GenericError` is returned.
-pub(crate) fn check_nst(code: c_long) -> MSResult<c_long> {
+pub(crate) fn check_nst(code: raw::nstime_t) -> MSResult<raw::nstime_t> {
     if code > MS_NSTERROR {
         return Ok(code);
     }

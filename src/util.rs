@@ -1,7 +1,7 @@
 use std::ffi::{c_char, c_long, CString};
 use std::fmt;
 
-use crate::error::{check, MSError};
+use crate::error::{check, check_nst, MSError};
 use crate::{raw, MSResult};
 
 /// Enumeration of time format identifiers.
@@ -110,8 +110,19 @@ pub fn nstime_to_string(
     }
 }
 
+/// Converts time into a nanosecond timestamp.
 pub fn time_to_nstime(t: &time::OffsetDateTime) -> i64 {
-    t.unix_timestamp()
+    unsafe {
+        check_nst(raw::ms_time2nstime(
+            t.year(),
+            t.ordinal().into(),
+            t.hour().into(),
+            t.minute().into(),
+            t.second().into(),
+            t.nanosecond(),
+        ))
+    }
+    .unwrap()
 }
 
 /// Utility function safely converting a slice of `c_char` values into a `String`.
