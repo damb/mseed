@@ -43,12 +43,12 @@ impl MSTraceId {
 
     /// Returns the time of the the first sample.
     pub fn start_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().earliest as _)
+        util::nstime_to_time(self.ptr().earliest)
     }
 
     /// Returns the time of the the last sample.
     pub fn end_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().latest as _)
+        util::nstime_to_time(self.ptr().latest)
     }
 
     /// Returns the number of [`MSTraceSegment`]s for this trace identifier.
@@ -106,12 +106,12 @@ impl<'id> MSTraceSegment<'id> {
 
     /// Returns the time of the the first sample.
     pub fn start_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().starttime as _)
+        util::nstime_to_time(self.ptr().starttime)
     }
 
     /// Returns the time of the the last sample.
     pub fn end_time(&self) -> MSResult<OffsetDateTime> {
-        util::nstime_to_time(self.ptr().endtime as _)
+        util::nstime_to_time(self.ptr().endtime)
     }
 
     /// Returns the nominal sample rate as samples per second (`Hz`)
@@ -521,20 +521,14 @@ impl fmt::Display for TraceListDisplay<'_> {
             };
             for tseg in tid.iter() {
                 let start_time = unsafe { (*tseg.inner).starttime };
-                let start_time_str = util::nstime_to_string(
-                    start_time as _,
-                    self.time_format,
-                    MSSubSeconds::NanoMicro,
-                )
-                .map_err(|_| fmt::Error)?;
+                let start_time_str =
+                    util::nstime_to_string(start_time, self.time_format, MSSubSeconds::NanoMicro)
+                        .map_err(|_| fmt::Error)?;
 
                 let end_time = unsafe { (*tseg.inner).endtime };
-                let end_time_str = util::nstime_to_string(
-                    end_time as _,
-                    self.time_format,
-                    MSSubSeconds::NanoMicro,
-                )
-                .map_err(|_| fmt::Error)?;
+                let end_time_str =
+                    util::nstime_to_string(end_time, self.time_format, MSSubSeconds::NanoMicro)
+                        .map_err(|_| fmt::Error)?;
 
                 if self.gap > 0 {
                     let mut gap: f64 = 0.0;

@@ -278,12 +278,12 @@ impl MSRecord {
 
     /// Returns the start time of the record (i.e. the time of the first sample).
     pub fn start_time(&self) -> MSResult<time::OffsetDateTime> {
-        util::nstime_to_time(self.ptr().starttime as _)
+        util::nstime_to_time(self.ptr().starttime)
     }
 
     /// Calculates the end time of the last sample in the record.
     pub fn end_time(&self) -> MSResult<time::OffsetDateTime> {
-        unsafe { util::nstime_to_time(check_nst(raw::msr3_endtime(self.0) as _)?) }
+        unsafe { util::nstime_to_time(check_nst(raw::msr3_endtime(self.0))?) }
     }
 
     /// Returns the nominal sample rate as samples per second (`Hz`)
@@ -411,7 +411,7 @@ impl fmt::Display for MSRecord {
             v.samplecnt,
             self.sample_rate_hz(),
             util::nstime_to_string(
-                v.starttime as _,
+                v.starttime,
                 MSTimeFormat::IsoMonthDayDoyZ,
                 MSSubSeconds::NanoMicro
             )

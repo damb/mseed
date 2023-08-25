@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_long, CString};
+use std::ffi::{c_char, CString};
 use std::fmt;
 
 use crate::error::{check, check_nst, MSError};
@@ -64,7 +64,10 @@ impl MSSubSeconds {
     }
 }
 
-pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
+/// Converts a nanosecond timestamp into a time.
+///
+/// See also [`time_to_nstime()`].
+pub fn nstime_to_time(nst: i64) -> MSResult<time::OffsetDateTime> {
     let mut year = 0;
     let mut yday = 0;
     let mut hour = 0;
@@ -73,7 +76,7 @@ pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
     let mut nsec = 0;
     unsafe {
         check(raw::ms_nstime2time(
-            nst as _, &mut year, &mut yday, &mut hour, &mut min, &mut sec, &mut nsec,
+            nst, &mut year, &mut yday, &mut hour, &mut min, &mut sec, &mut nsec,
         ))?
     };
 
@@ -87,7 +90,7 @@ pub fn nstime_to_time(nst: c_long) -> MSResult<time::OffsetDateTime> {
 
 /// Converts a nanosecond time into a time string.
 pub fn nstime_to_string(
-    nst: c_long,
+    nst: i64,
     time_format: MSTimeFormat,
     subsecond_format: MSSubSeconds,
 ) -> MSResult<String> {
@@ -95,13 +98,8 @@ pub fn nstime_to_string(
         .unwrap()
         .into_raw();
     unsafe {
-        if raw::ms_nstime2timestr(
-            nst as _,
-            time,
-            time_format.as_raw(),
-            subsecond_format.as_raw(),
-        )
-        .is_null()
+        if raw::ms_nstime2timestr(nst, time, time_format.as_raw(), subsecond_format.as_raw())
+            .is_null()
         {
             return Err(MSError::from_str("failed to convert nstime to string"));
         }
@@ -111,6 +109,8 @@ pub fn nstime_to_string(
 }
 
 /// Converts time into a nanosecond timestamp.
+///
+/// See also [`nstime_to_time()`].
 pub fn time_to_nstime(t: &time::OffsetDateTime) -> i64 {
     unsafe {
         check_nst(raw::ms_time2nstime(
