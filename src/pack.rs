@@ -302,6 +302,7 @@ where
         } as c_char;
         (*msr).reclen = info.rec_len;
         (*msr).starttime = util::time_to_nstime(start_time);
+        (*msr).samprate = info.sample_rate;
         (*msr).pubversion = info.pub_version;
         (*msr).formatversion = info.format_version;
         (*msr).numsamples = c_long::try_from(data_samples.len())
