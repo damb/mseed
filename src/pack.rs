@@ -135,6 +135,8 @@ impl PackInfo {
     /// Creates a new `PackInfo` from a [FDSN source
     /// identifier](https://docs.fdsn.org/projects/source-identifiers/) with configured sample
     /// rate.
+    ///
+    /// See also [`factor_multiplier_to_sample_rate`](util::factor_multiplier_to_sample_rate()).
     pub fn with_sample_rate<T>(sid: T, sample_rate: c_double) -> MSResult<Self>
     where
         T: Into<Vec<u8>>,

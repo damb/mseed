@@ -234,6 +234,30 @@ pub fn seedchan2xchan(seed_chan: &str) -> MSResult<String> {
     Ok(rv)
 }
 
+/// Calculates the sample rate as samples per second (`Hz`) from SEED 2.x sample rate factor and
+/// multiplier.
+///
+/// Both the sample rate factor and multipier are stored in the fixed section header of data
+/// records. For further information please refer to the [SEED
+/// manual](http://www.fdsn.org/pdf/SEEDManual_V2.4.pdf).
+pub fn factor_multiplier_to_sample_rate(factor: i32, multiplier: i32) -> f64 {
+    let mut samp_rate: f64 = 0.0;
+
+    if factor > 0 {
+        samp_rate = factor as f64;
+    } else if factor < 0 {
+        samp_rate = -1.0 / factor as f64;
+    }
+
+    if multiplier > 0 {
+        samp_rate = samp_rate * multiplier as f64;
+    } else if multiplier < 0 {
+        samp_rate = -1.0 * (samp_rate as f64 / multiplier as f64);
+    }
+
+    return samp_rate;
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -249,5 +273,17 @@ mod tests {
     #[test]
     fn test_seedchan2xchan() {
         assert_eq!(seedchan2xchan("BHZ").unwrap(), "B_H_Z");
+    }
+
+    #[test]
+    fn test_nominal_sample_rate() {
+        assert_eq!(factor_multiplier_to_sample_rate(0, 0), 0f64);
+        assert_eq!(factor_multiplier_to_sample_rate(33, 10), 330f64);
+        assert_eq!(factor_multiplier_to_sample_rate(330, 1), 330f64);
+        assert_eq!(factor_multiplier_to_sample_rate(3306, -10), 330.6);
+        assert_eq!(factor_multiplier_to_sample_rate(-60, 1), 1.0 / 60.0);
+        assert_eq!(factor_multiplier_to_sample_rate(1, -10), 0.1);
+        assert_eq!(factor_multiplier_to_sample_rate(-10, 1), 0.1);
+        assert_eq!(factor_multiplier_to_sample_rate(-1, -10), 0.1);
     }
 }
