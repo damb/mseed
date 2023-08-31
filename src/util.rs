@@ -276,7 +276,7 @@ mod tests {
     }
 
     #[test]
-    fn test_nominal_sample_rate() {
+    fn test_factor_multiplier_to_sample_rate() {
         assert_eq!(factor_multiplier_to_sample_rate(0, 0), 0f64);
         assert_eq!(factor_multiplier_to_sample_rate(33, 10), 330f64);
         assert_eq!(factor_multiplier_to_sample_rate(330, 1), 330f64);
