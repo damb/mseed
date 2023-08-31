@@ -406,8 +406,6 @@ where
 ///
 ///  Note that this can be used to efficiently convert format versions or modify header values
 ///  without unpacking the data samples.
-///
-///  # Examples
 #[allow(dead_code)]
 pub fn repack_mseed3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
     Ok(unsafe {
