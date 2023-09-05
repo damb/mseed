@@ -18,7 +18,7 @@ edition = "2021"
 [dependencies]
 libmseed-sys = { path = "libmseed-sys", version="0.2.1"}
 
-bitflags = "2.2.1"
+bitflags = "2.4.0"
 num-traits = "0.2"
 time = "0.3.20"
 url = "2.4"
