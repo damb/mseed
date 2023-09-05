@@ -4,6 +4,7 @@ use std::ptr;
 use std::slice::from_raw_parts;
 use std::str;
 
+use bitflags::bitflags;
 use serde_json::Value;
 
 use raw::MS3Record;
@@ -150,6 +151,24 @@ impl fmt::Display for MSDataEncoding {
     }
 }
 
+bitflags! {
+    /// Bit field flags.
+    ///
+    /// For further details please refer to the [miniSEED v3
+    /// specification](http://docs.fdsn.org/projects/miniseed3/en/latest/definition.html#record-layout-and-fields).
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct MSBitFieldFlags: u8 {
+        /// Calibration signal present.
+        const CALIBRATION_SIGNAL_PRESENT = 0b00000001;
+        /// Time tag is questionable.
+        const TIME_TAG_QUESTIONABLE = 0b00000010;
+        /// Clock locked.
+        const CLOCK_LOCKED = 0b00000100;
+
+        const _ = !0;
+    }
+}
+
 /// miniSEED record structure.
 #[derive(Debug)]
 pub struct MSRecord(*mut MS3Record);
@@ -271,9 +290,9 @@ impl MSRecord {
         self.ptr().formatversion
     }
 
-    /// Returns the record level bit flags.
-    pub fn flags(&self) -> c_uchar {
-        self.ptr().flags
+    /// Returns the record level bit field flags.
+    pub fn flags(&self) -> MSBitFieldFlags {
+        MSBitFieldFlags::from_bits_retain(self.ptr().flags)
     }
 
     /// Returns the start time of the record (i.e. the time of the first sample).
@@ -480,36 +499,38 @@ impl fmt::Display for RecordDisplay<'_> {
             writeln!(f, "       sample rate (Hz): {}", self.rec.sample_rate_hz())?;
             let flags = self.rec.flags();
             if self.detail > 1 {
-                writeln!(f, "                  flags: [{:08b}] 8 bits", flags)?;
+                writeln!(f, "                  flags: [{:08b}] 8 bits", flags.bits())?;
 
-                if flags & (1 << 0) != 0 {
+                if !(flags & MSBitFieldFlags::CALIBRATION_SIGNAL_PRESENT).is_empty() {
                     writeln!(
                         f,
                         "                         [Bit 0] Calibration signals present"
                     )?;
                 }
-                if flags & (1 << 1) != 0 {
+                if !(flags & MSBitFieldFlags::TIME_TAG_QUESTIONABLE).is_empty() {
                     writeln!(
                         f,
                         "                         [Bit 1] Time tag is questionable"
                     )?;
                 }
-                if flags & (1 << 2) != 0 {
+                if !(flags & MSBitFieldFlags::CLOCK_LOCKED).is_empty() {
                     writeln!(f, "                         [Bit 2] Clock locked")?;
                 }
-                if flags & (1 << 3) != 0 {
+
+                let bits = flags.bits();
+                if bits & (1 << 3) != 0 {
                     writeln!(f, "                         [Bit 3] Undefined bit set")?;
                 }
-                if flags & (1 << 4) != 0 {
+                if bits & (1 << 4) != 0 {
                     writeln!(f, "                         [Bit 4] Undefined bit set")?;
                 }
-                if flags & (1 << 5) != 0 {
+                if bits & (1 << 5) != 0 {
                     writeln!(f, "                         [Bit 5] Undefined bit set")?;
                 }
-                if flags & (1 << 6) != 0 {
+                if bits & (1 << 6) != 0 {
                     writeln!(f, "                         [Bit 6] Undefined bit set")?;
                 }
-                if flags & (1 << 7) != 0 {
+                if bits & (1 << 7) != 0 {
                     writeln!(f, "                         [Bit 7] Undefined bit set")?;
                 }
             }

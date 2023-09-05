@@ -93,7 +93,7 @@ pub use crate::pack::{
     TlPackInfo,
 };
 pub use crate::record::{
-    detect, MSDataEncoding, MSRecord, MSSampleType, RecordDetection, RecordDisplay,
+    detect, MSBitFieldFlags, MSDataEncoding, MSRecord, MSSampleType, RecordDetection, RecordDisplay,
 };
 pub use crate::trace::{
     DataSampleType, MSTraceId, MSTraceIdIter, MSTraceList, MSTraceSegment, MSTraceSegmentIter,

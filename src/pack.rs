@@ -126,6 +126,7 @@ impl PackInfo {
             sample_rate: 1.0,
             format_version: 3,
             pub_version: 1,
+            flags: MSBitFieldFlags::empty(),
             encoding: MSDataEncoding::Steim2,
             rec_len: 4096,
             extra_headers: None,
