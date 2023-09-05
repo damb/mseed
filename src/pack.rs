@@ -136,6 +136,11 @@ impl PackInfo {
     /// identifier](https://docs.fdsn.org/projects/source-identifiers/) with configured sample
     /// rate.
     ///
+    /// Note that by [libmseed](https://github.com/EarthScope/libmseed) convention a negative
+    /// `sample_rate` value is considered as a *sample rate period* (i.e. in units of seconds (`s`)),
+    /// while a positive sample rate value is considered as a *sample rate frequency* (i.e. in units
+    /// of Hertz (`Hz`)).
+    ///
     /// See also [`factor_multiplier_to_sample_rate`](util::factor_multiplier_to_sample_rate()).
     pub fn with_sample_rate<T>(sid: T, sample_rate: c_double) -> MSResult<Self>
     where
