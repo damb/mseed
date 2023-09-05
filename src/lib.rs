@@ -159,5 +159,7 @@ bitflags! {
         const MSF_RECORDLIST = raw::MSF_RECORDLIST;
         /// **TraceList**: Do not modify a trace list when packing.
         const MSF_MAINTAINMSTL = raw::MSF_MAINTAINMSTL;
+
+        const _ = !0;
     }
 }
