@@ -4,8 +4,8 @@ use std::ptr;
 use std::slice;
 
 use crate::{
-    error::check, raw, util, MSControlFlags, MSDataEncoding, MSError, MSRecord, MSResult,
-    MSSampleType, MSTraceList,
+    error::check, raw, util, MSBitFieldFlags, MSControlFlags, MSDataEncoding, MSError, MSRecord,
+    MSResult, MSSampleType, MSTraceList,
 };
 use raw::MS3Record;
 
@@ -104,6 +104,8 @@ pub struct PackInfo {
     pub format_version: c_uchar,
     /// Publication version.
     pub pub_version: c_uchar,
+    /// Bit field flags.
+    pub flags: MSBitFieldFlags,
     /// Data encoding.
     pub encoding: MSDataEncoding,
     /// Record length used for encoding.
@@ -313,6 +315,7 @@ where
         (*msr).samprate = info.sample_rate;
         (*msr).pubversion = info.pub_version;
         (*msr).formatversion = info.format_version;
+        (*msr).flags = info.flags.bits();
         (*msr).numsamples = c_long::try_from(data_samples.len())
             .map_err(|e| MSError::from_str(&format!("invalid data sample length ({})", e)))?
             as _;
