@@ -13,7 +13,7 @@ modify `Cargo.toml`:
 
 ```toml
 [dependencies]
-mseed = "0.5"
+mseed = "0.6"
 ```
 
 ## Documentation
