@@ -197,12 +197,11 @@ pub fn xchan2seedchan(xchan: &str) -> MSResult<String> {
     let xcha = CString::new(xchan)
         .map_err(|_| MSError::from_str(&format!("failed to convert xchan: {}", xchan)))?;
 
-    let cha = CString::new(Vec::with_capacity(4))
-        .map_err(|_| MSError::from_str(&format!("failed to convert xchan: {}", xchan)))?
-        .into_raw();
+    let buf = b"   ".to_vec();
     let cha = unsafe {
-        check(raw::ms_xchan2seedchan(cha, xcha.as_ptr() as *const _))?;
-        CString::from_raw(cha)
+        let buf = CString::from_vec_unchecked(buf).into_raw();
+        check(raw::ms_xchan2seedchan(buf, xcha.as_ptr() as *const _))?;
+        CString::from_raw(buf)
     };
 
     let rv = cha
@@ -219,12 +218,11 @@ pub fn seedchan2xchan(seed_chan: &str) -> MSResult<String> {
     let cha = CString::new(seed_chan)
         .map_err(|_| MSError::from_str(&format!("failed to convert seed_chan: {}", seed_chan)))?;
 
-    let xcha = CString::new(Vec::with_capacity(6))
-        .map_err(|_| MSError::from_str(&format!("failed to convert seed_chan: {}", seed_chan)))?
-        .into_raw();
+    let buf = b"     ".to_vec();
     let xcha = unsafe {
-        check(raw::ms_seedchan2xchan(xcha, cha.as_ptr() as *const _))?;
-        CString::from_raw(xcha)
+        let buf = CString::from_vec_unchecked(buf).into_raw();
+        check(raw::ms_seedchan2xchan(buf, cha.as_ptr() as *const _))?;
+        CString::from_raw(buf)
     };
 
     let rv = xcha
