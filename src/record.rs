@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, c_ushort, CStr};
+use std::ffi::{c_char, c_double, c_long, c_ulong,c_uchar, c_uint, CStr};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -331,7 +331,7 @@ impl MSRecord {
     }
 
     /// Returns the length of the data payload in bytes.
-    pub fn data_length(&self) -> c_ushort {
+    pub fn data_length(&self) -> c_uint {
         self.ptr().datalength
     }
 
@@ -364,8 +364,8 @@ impl MSRecord {
         })
     }
 
-    /// Returns the size of the (unpacked) data samples in bytes.
-    pub fn data_size(&self) -> usize {
+    /// Returns the size of the buffer for (unpacked) data samples in bytes.
+    pub fn data_size(&self) -> c_ulong {
         self.ptr().datasize
     }
 

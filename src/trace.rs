@@ -1,4 +1,4 @@
-use std::ffi::{c_double, c_float, c_int, c_long, c_uchar, c_uint};
+use std::ffi::{c_double, c_float, c_int, c_long, c_ulong, c_uchar, c_uint};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -144,8 +144,8 @@ impl<'id> MSTraceSegment<'id> {
         Ok(rv)
     }
 
-    /// Returns the size of the (unpacked) data samples in bytes.
-    pub fn data_size(&self) -> usize {
+    /// Returns the size of the buffer for (unpacked) data samples in bytes.
+    pub fn data_size(&self) -> c_ulong {
         self.ptr().datasize
     }
 

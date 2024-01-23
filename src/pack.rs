@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_int, c_long, c_uchar, c_uint, c_ushort, c_void, CString};
+use std::ffi::{c_char, c_double, c_int, c_long, c_ulong, c_uchar, c_uint, c_ushort, c_void, CString};
 use std::mem;
 use std::ptr;
 use std::slice;
@@ -320,7 +320,7 @@ where
             .map_err(|e| MSError::from_str(&format!("invalid data sample length ({})", e)))?
             as _;
         (*msr).datasamples = data_samples.as_mut_ptr() as *mut _ as *mut c_void;
-        (*msr).datasize = mem::size_of_val(data_samples);
+        (*msr).datasize = mem::size_of_val(data_samples) as c_ulong;
         (*msr).extralength = 0;
         (*msr).extra = ptr::null_mut();
     }
