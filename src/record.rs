@@ -696,7 +696,12 @@ mod tests {
         }
 
         assert_eq!(msr.data_length(), 384);
-        assert_eq!(msr.data_size(), 540);
+        // XXX(damb): size of allocated buffer. This value will be different on Windows versus
+        // non-Windows because libmseed will pre-allocate (allocating more than needed) on Windows
+        // for performance. Credits to Chad
+        // (https://github.com/damb/mseed/pull/15#issue-2097164022).
+        // 
+        // assert_eq!(msr.data_size(), 540);
         assert_eq!(msr.num_samples(), 135);
 
         assert_eq!(msr.sample_type(), MSSampleType::Integer32);
@@ -761,7 +766,12 @@ mod tests {
         }
 
         assert_eq!(msr.data_length(), 448);
-        assert_eq!(msr.data_size(), 540);
+        // XXX(damb): size of allocated buffer. This value will be different on Windows versus
+        // non-Windows because libmseed will pre-allocate (allocating more than needed) on Windows
+        // for performance. Credits to Chad
+        // (https://github.com/damb/mseed/pull/15#issue-2097164022).
+        // 
+        // assert_eq!(msr.data_size(), 540);
         assert_eq!(msr.num_samples(), 135);
 
         assert_eq!(msr.sample_type(), MSSampleType::Integer32);
