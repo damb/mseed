@@ -35,7 +35,7 @@ cargo build
 
 ## Version of libmseed
 
-Currently this library requires `libmseed` version 3.0.17 (or newer patch
+Currently this library requires `libmseed` version 3.1.1 (or newer patch
 versions). The source for `libmseed` is included in the `libmseed-sys` crate so
 there's no need to pre-install the `libmseed` library, the `libmseed-sys` crate
 will figure that and/or build that for you.
