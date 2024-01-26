@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_ulong,c_uchar, c_uint, CStr};
+use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, CStr};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -18,7 +18,7 @@ pub struct RecordDetection {
     /// Major version of the format detected.
     pub format_version: c_uchar,
     /// Size of the record in bytes. `None` if the record length is unknown.
-    pub rec_len: Option<usize>,
+    pub rec_len: Option<u64>,
 }
 
 /// Detect miniSEED record in buffer.
@@ -41,7 +41,7 @@ pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
     let rec_len = if rec_len == 0 {
         None
     } else {
-        Some(rec_len as usize)
+        Some(rec_len as u64)
     };
 
     Ok(RecordDetection {
@@ -365,7 +365,7 @@ impl MSRecord {
     }
 
     /// Returns the size of the buffer for (unpacked) data samples in bytes.
-    pub fn data_size(&self) -> c_ulong {
+    pub fn data_size(&self) -> u64 {
         self.ptr().datasize
     }
 
