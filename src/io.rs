@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_int, c_long, c_void, CString};
+use std::ffi::{c_char, c_int, c_void, CString};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::ptr;
@@ -233,7 +233,7 @@ impl<W: Write> MSWriter<W> {
     ///  case of miniSEED 2, unfilled.
     ///  If `flags` has [`MSControlFlags::MSF_PACKVER2`] set `msr` is packed as miniSEED v2
     ///  regardless of msr's [`MSRecord::format_version`].
-    pub fn write_record(&mut self, msr: &MSRecord, flags: MSControlFlags) -> MSResult<c_long> {
+    pub fn write_record(&mut self, msr: &MSRecord, flags: MSControlFlags) -> MSResult<c_int> {
         // XXX(damb): reimplementation of [`raw::msr3_writemseed`]
         unsafe {
             check(raw::msr3_pack(
@@ -243,7 +243,7 @@ impl<W: Write> MSWriter<W> {
                 ptr::null_mut(),
                 flags.bits(),
                 0,
-            ) as c_long)
+            ) as c_int)
         }
     }
 
@@ -254,7 +254,7 @@ impl<W: Write> MSWriter<W> {
         flags: MSControlFlags,
         encoding: MSDataEncoding,
         max_rec_len: c_int,
-    ) -> MSResult<c_long> {
+    ) -> MSResult<i64> {
         // XXX(damb): reimplementation of [`raw::mstl3_writemseed`]
         let mut flags = flags;
         flags |= MSControlFlags::MSF_MAINTAINMSTL;
@@ -271,7 +271,7 @@ impl<W: Write> MSWriter<W> {
                 flags.bits(),
                 0,
                 ptr::null_mut(),
-            ) as c_long)
+            ) as i64)
         }
     }
 }

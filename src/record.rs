@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_long, c_uchar, c_uint, CStr};
+use std::ffi::{c_char, c_double, c_uchar, CStr};
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -16,7 +16,7 @@ use crate::{raw, util, MSControlFlags, MSError, MSResult, MSSubSeconds, MSTimeFo
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct RecordDetection {
     /// Major version of the format detected.
-    pub format_version: c_uchar,
+    pub format_version: u8,
     /// Size of the record in bytes. `None` if the record length is unknown.
     pub rec_len: Option<u64>,
 }
@@ -26,7 +26,7 @@ pub struct RecordDetection {
 /// Determine if the buffer contains a miniSEED data record by verifying known signatures (fields
 /// with known limited values).
 pub fn detect<T: AsRef<[u8]>>(buf: T) -> MSResult<RecordDetection> {
-    let mut format_version: c_uchar = 0;
+    let mut format_version: u8 = 0;
     let format_version_ptr = (&mut format_version) as *mut _;
 
     let buf = buf.as_ref();
@@ -140,10 +140,7 @@ impl fmt::Display for MSDataEncoding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let encoding = CStr::from_ptr(raw::ms_encodingstr(
-                (*self as u8)
-                    .try_into()
-                    .map_err(|_| fmt::Error)
-                    .unwrap(),
+                (*self as u8).try_into().map_err(|_| fmt::Error).unwrap(),
             ))
             .to_string_lossy();
             write!(f, "{}", encoding)
@@ -228,7 +225,7 @@ impl MSRecord {
     /// Unpacks the packed data of the record and returns the number of unpacked samples.
     ///
     /// If the data is already unpacked, the number of previously unpacked samples is returned.
-    pub fn unpack_data(&mut self) -> MSResult<c_long> {
+    pub fn unpack_data(&mut self) -> MSResult<i64> {
         if !self.ptr().datasamples.is_null() {
             return Ok(self.num_samples());
         }
@@ -286,7 +283,7 @@ impl MSRecord {
     }
 
     /// Returns the major format version of the underlying record.
-    pub fn format_version(&self) -> c_uchar {
+    pub fn format_version(&self) -> u8 {
         self.ptr().formatversion
     }
 
@@ -316,22 +313,22 @@ impl MSRecord {
     }
 
     /// Returns the record publication version.
-    pub fn pub_version(&self) -> c_uchar {
+    pub fn pub_version(&self) -> u8 {
         self.ptr().pubversion
     }
 
     /// Returns the number of data samples as indicated by the raw record.
-    pub fn sample_cnt(&self) -> c_long {
+    pub fn sample_cnt(&self) -> i64 {
         self.ptr().samplecnt as _
     }
 
     /// Returns the CRC of the record.
-    pub fn crc(&self) -> c_uint {
+    pub fn crc(&self) -> u32 {
         self.ptr().crc
     }
 
     /// Returns the length of the data payload in bytes.
-    pub fn data_length(&self) -> c_uint {
+    pub fn data_length(&self) -> u32 {
         self.ptr().datalength
     }
 
@@ -370,7 +367,7 @@ impl MSRecord {
     }
 
     /// Returns the number of (unpacked) data samples.
-    pub fn num_samples(&self) -> c_long {
+    pub fn num_samples(&self) -> i64 {
         self.ptr().numsamples as _
     }
 
@@ -552,7 +549,7 @@ impl fmt::Display for RecordDisplay<'_> {
             writeln!(
                 f,
                 "       payload encoding: {} (val: {})",
-                encoding, encoding as c_uchar
+                encoding, encoding as u8
             )?;
 
             if self.detail > 1 {

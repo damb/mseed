@@ -80,8 +80,6 @@
 //! .unwrap();
 //! ```
 
-use std::ffi::c_uint;
-
 use bitflags::bitflags;
 
 use libmseed_sys as raw;
@@ -138,7 +136,7 @@ pub enum MSErrorCode {
 bitflags! {
     /// Parsing, packing and trace construction control flags.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct MSControlFlags: c_uint {
+    pub struct MSControlFlags: u32 {
         /// **Parsing**: Unpack data samples.
         const MSF_UNPACKDATA = raw::MSF_UNPACKDATA;
         /// **Parsing**: Skip input that cannot be identified as miniSEED.

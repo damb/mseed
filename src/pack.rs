@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_double, c_int, c_long, c_ulong, c_uchar, c_uint, c_ushort, c_void, CString};
+use std::ffi::{c_char, c_double, c_long, c_void, CString};
 use std::mem;
 use std::ptr;
 use std::slice;
@@ -15,11 +15,11 @@ use raw::MS3Record;
 #[derive(Debug, Clone)]
 pub struct TlPackInfo {
     // /// The miniSEED format version.
-    // pub format_version: c_uchar,
+    // pub format_version: u8,
     /// Data encoding.
     pub encoding: MSDataEncoding,
     /// Record length used for encoding.
-    pub rec_len: c_int,
+    pub rec_len: i32,
     /// Extra headers.
     ///
     /// If not `None` it is expected to contain extra headers, i.e. a string containing (compact)
@@ -101,15 +101,15 @@ pub struct PackInfo {
     /// Record sample rate.
     pub sample_rate: c_double,
     /// The miniSEED format version.
-    pub format_version: c_uchar,
+    pub format_version: u8,
     /// Publication version.
-    pub pub_version: c_uchar,
+    pub pub_version: u8,
     /// Bit field flags.
     pub flags: MSBitFieldFlags,
     /// Data encoding.
     pub encoding: MSDataEncoding,
     /// Record length used for encoding.
-    pub rec_len: c_int,
+    pub rec_len: i32,
     /// Extra headers.
     ///
     /// If not `None` it is expected to contain extra headers, i.e. a string containing (compact)
@@ -320,7 +320,7 @@ where
             .map_err(|e| MSError::from_str(&format!("invalid data sample length ({})", e)))?
             as _;
         (*msr).datasamples = data_samples.as_mut_ptr() as *mut _ as *mut c_void;
-        (*msr).datasize = mem::size_of_val(data_samples) as c_ulong;
+        (*msr).datasize = mem::size_of_val(data_samples) as u64;
         (*msr).extralength = 0;
         (*msr).extra = ptr::null_mut();
     }
@@ -328,7 +328,7 @@ where
     if let Some(extra_headers) = &info.extra_headers {
         let cloned = extra_headers.clone();
         unsafe {
-            (*msr).extralength = c_ushort::try_from(cloned.as_bytes_with_nul().len())
+            (*msr).extralength = u16::try_from(cloned.as_bytes_with_nul().len())
                 .map_err(|e| MSError::from_str(&format!("invalid extra header length ({})", e)))?;
             (*msr).extra = cloned.into_raw();
         }
@@ -364,7 +364,7 @@ where
     Ok((cnt_records as usize, cnt_samples as usize))
 }
 
-extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: c_int, out: *mut c_void)
+extern "C" fn rh_wrapper<F>(rec: *mut c_char, rec_len: i32, out: *mut c_void)
 where
     F: FnMut(&[u8]),
 {
@@ -419,11 +419,16 @@ where
 ///  without unpacking the data samples.
 #[allow(dead_code)]
 pub fn repack_mseed3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
+    let buflen: u32 = match buf.len().try_into() {
+        Ok(reclen) => reclen,
+        Err(err) => return Err(MSError::from_str(err.to_string().as_str())),
+    };
+
     Ok(unsafe {
         check(raw::msr3_repack_mseed3(
             msr.get_raw(),
             buf.as_mut_ptr() as *mut _,
-            buf.len() as c_uint,
+            buflen,
             0,
         ))? as usize
     })
@@ -434,11 +439,16 @@ pub fn repack_mseed3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
 /// Returns on success the size of the header (fixed and extra) in bytes.
 #[allow(dead_code)]
 pub fn pack_header3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
+    let buflen: u32 = match buf.len().try_into() {
+        Ok(reclen) => reclen,
+        Err(err) => return Err(MSError::from_str(err.to_string().as_str())),
+    };
+
     Ok(unsafe {
         check(raw::msr3_pack_header3(
             msr.get_raw(),
             buf.as_mut_ptr() as *mut _,
-            buf.len() as c_uint,
+            buflen,
             0,
         ))? as usize
     })
@@ -449,11 +459,16 @@ pub fn pack_header3(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
 /// Returns on success the size of the header (fixed and blockettes) in bytes.
 #[allow(dead_code)]
 pub fn pack_header2(msr: &MSRecord, buf: &mut [u8]) -> MSResult<usize> {
+    let buflen: u32 = match buf.len().try_into() {
+        Ok(reclen) => reclen,
+        Err(err) => return Err(MSError::from_str(err.to_string().as_str())),
+    };
+
     Ok(unsafe {
         check(raw::msr3_pack_header2(
             msr.get_raw(),
             buf.as_mut_ptr() as *mut _,
-            buf.len() as c_uint,
+            buflen,
             0,
         ))? as usize
     })

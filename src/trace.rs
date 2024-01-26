@@ -1,4 +1,4 @@
-use std::ffi::{c_double, c_float, c_int, c_long, c_ulong, c_uchar, c_uint};
+use std::ffi::c_double;
 use std::fmt;
 use std::ptr;
 use std::slice::from_raw_parts;
@@ -37,7 +37,7 @@ impl MSTraceId {
     }
 
     /// Returns the largest contributing publication version.
-    pub fn pub_version(&self) -> c_uchar {
+    pub fn pub_version(&self) -> u8 {
         self.ptr().pubversion
     }
 
@@ -52,7 +52,7 @@ impl MSTraceId {
     }
 
     /// Returns the number of [`MSTraceSegment`]s for this trace identifier.
-    pub fn len(&self) -> c_uint {
+    pub fn len(&self) -> u32 {
         self.ptr().numsegments
     }
 
@@ -120,7 +120,7 @@ impl<'id> MSTraceSegment<'id> {
     }
 
     /// Returns the number of samples in trace coverage.
-    pub fn sample_cnt(&self) -> c_long {
+    pub fn sample_cnt(&self) -> i64 {
         self.ptr().samplecnt as _
     }
 
@@ -145,12 +145,12 @@ impl<'id> MSTraceSegment<'id> {
     }
 
     /// Returns the size of the buffer for (unpacked) data samples in bytes.
-    pub fn data_size(&self) -> c_ulong {
+    pub fn data_size(&self) -> u64 {
         self.ptr().datasize
     }
 
     /// Returns the number of (unpacked) data samples.
-    pub fn num_samples(&self) -> c_long {
+    pub fn num_samples(&self) -> i64 {
         self.ptr().numsamples as _
     }
 
@@ -197,13 +197,13 @@ pub trait DataSampleType {
     unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()>;
 }
 
-impl DataSampleType for c_uchar {
+impl DataSampleType for u8 {
     unsafe fn convert_into(_seg: *mut MS3TraceSeg, _truncate: bool) -> MSResult<()> {
         Ok(())
     }
 }
 
-impl DataSampleType for c_int {
+impl DataSampleType for i32 {
     unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
@@ -220,7 +220,7 @@ impl DataSampleType for c_int {
     }
 }
 
-impl DataSampleType for c_float {
+impl DataSampleType for f32 {
     unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
@@ -237,7 +237,7 @@ impl DataSampleType for c_float {
     }
 }
 
-impl DataSampleType for c_double {
+impl DataSampleType for f64 {
     unsafe fn convert_into(seg: *mut MS3TraceSeg, truncate: bool) -> MSResult<()> {
         let rv = unsafe {
             check(raw::mstl3_convertsamples(
@@ -402,7 +402,7 @@ impl MSTraceList {
     }
 
     /// Returns the length of the trace list.
-    pub fn len(&self) -> c_uint {
+    pub fn len(&self) -> u32 {
         self.ptr().numtraceids
     }
 
