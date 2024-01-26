@@ -37,7 +37,7 @@ mod tests {
         assert_eq!(sid, "FDSN:IU_ANMO_00_B_H_Z");
         assert_eq!(ms.starttime, 1267252200019538000);
         assert_eq!(ms.samprate, 20.0);
-        assert_eq!(ms.encoding, DE_STEIM2 as i8);
+        assert_eq!(ms.encoding, DE_STEIM2 as i16);
         assert_eq!(ms.pubversion, 4);
         assert_eq!(ms.samplecnt, 419);
         assert_eq!(ms.crc, 0);
@@ -66,7 +66,7 @@ mod tests {
         assert_eq!(sid, "FDSN:IU_ANMO_00_B_H_Z");
         assert_eq!(ms.starttime, 1267252220969538000);
         assert_eq!(ms.samprate, 20.0);
-        assert_eq!(ms.encoding, DE_STEIM2 as i8);
+        assert_eq!(ms.encoding, DE_STEIM2 as i16);
         assert_eq!(ms.pubversion, 4);
         assert_eq!(ms.samplecnt, 368);
         assert_eq!(ms.crc, 0);
