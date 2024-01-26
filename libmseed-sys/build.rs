@@ -3,8 +3,6 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 
-use bindgen::CargoCallbacks;
-
 const LIB_DIR: &str = "vendor";
 const SOURCE_FILES: [&str; 17] = [
     "crc32c.c",
@@ -62,7 +60,7 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header(headers_path_str)
-        .parse_callbacks(Box::new(CargoCallbacks))
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .clang_arg(&format!("-I{}", lib_dir_path_str))
         .allowlist_type("MS.*")
         .allowlist_var("MS_.*")
