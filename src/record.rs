@@ -80,35 +80,35 @@ impl MSSampleType {
 }
 
 /// An enumeration of possible data encodings.
-#[repr(u8)]
+#[repr(i16)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum MSDataEncoding {
     /// Text encoding (UTF-8)
-    Text = raw::DE_TEXT as u8,
+    Text = raw::DE_TEXT as i16,
     /// 16-bit integer encoding
-    Integer16 = raw::DE_INT16 as u8,
+    Integer16 = raw::DE_INT16 as i16,
     /// 32-bit integer encoding
-    Integer32 = raw::DE_INT32 as u8,
+    Integer32 = raw::DE_INT32 as i16,
     /// 32-bit floating point encoding (IEEE)
-    Float32 = raw::DE_FLOAT32 as u8,
+    Float32 = raw::DE_FLOAT32 as i16,
     /// 64-bit floating point encoding (IEEE)
-    Float64 = raw::DE_FLOAT64 as u8,
+    Float64 = raw::DE_FLOAT64 as i16,
     /// Steim-1 compressed integer encoding
-    Steim1 = raw::DE_STEIM1 as u8,
+    Steim1 = raw::DE_STEIM1 as i16,
     /// Steim-2 compressed integer encoding
-    Steim2 = raw::DE_STEIM2 as u8,
+    Steim2 = raw::DE_STEIM2 as i16,
     /// **Legacy**: GEOSCOPE 24-bit integer encoding
-    GeoScope24 = raw::DE_GEOSCOPE24 as u8,
+    GeoScope24 = raw::DE_GEOSCOPE24 as i16,
     /// **Legacy**: GEOSCOPE 16-bit gain ranged, 3-bit exponent
-    GeoScope163 = raw::DE_GEOSCOPE163 as u8,
+    GeoScope163 = raw::DE_GEOSCOPE163 as i16,
     /// **Legacy**: GEOSCOPE 16-bit gain ranged, 4-bit exponent
-    GeoScope164 = raw::DE_GEOSCOPE164 as u8,
+    GeoScope164 = raw::DE_GEOSCOPE164 as i16,
     /// **Legacy**: CDSN 16-bit gain ranged
-    CDSN = raw::DE_CDSN as u8,
+    CDSN = raw::DE_CDSN as i16,
     /// **Legacy**: SRO 16-bit gain ranged
-    SRO = raw::DE_SRO as u8,
+    SRO = raw::DE_SRO as i16,
     /// **Legacy**: DWWSSN 16-bit gain ranged
-    DWWSSN = raw::DE_DWWSSN as u8,
+    DWWSSN = raw::DE_DWWSSN as i16,
 }
 
 impl MSDataEncoding {
@@ -140,7 +140,7 @@ impl fmt::Display for MSDataEncoding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let encoding = CStr::from_ptr(raw::ms_encodingstr(
-                (*self as c_char)
+                (*self as u8)
                     .try_into()
                     .map_err(|_| fmt::Error)
                     .unwrap(),
