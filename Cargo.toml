@@ -16,7 +16,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libmseed-sys = { path = "libmseed-sys", version="0.3.0"}
+libmseed-sys = { path = "libmseed-sys", version="0.3.1"}
 
 bitflags = "2.4.0"
 num-traits = "0.2"
